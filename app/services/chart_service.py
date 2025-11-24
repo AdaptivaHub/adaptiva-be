@@ -1,5 +1,6 @@
 import plotly.express as px
 import plotly.graph_objects as go
+import json
 from fastapi import HTTPException
 from typing import Dict, Any
 
@@ -129,7 +130,6 @@ def generate_chart(request: ChartGenerationRequest) -> ChartGenerationResponse:
         chart_json = fig.to_json()
         
         # Parse JSON to dict for response
-        import json
         chart_dict = json.loads(chart_json)
         
         # Prepare response
