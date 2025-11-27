@@ -216,6 +216,13 @@ def _create_restricted_globals(df: pd.DataFrame) -> Dict[str, Any]:
         '_getiter_': default_guarded_getiter,
         '_iter_unpack_sequence_': guarded_iter_unpack_sequence,
         
+        # Write guard - allows attribute/item assignment
+        # Using a simple pass-through since we trust pandas/plotly operations
+        '_write_': lambda x: x,
+        
+        # Inplace binary operations (+=, -=, etc.)
+        '_inplacevar_': lambda op, x, y: op(x, y),
+        
         # Data and visualization libraries
         'df': df,
         'pd': pd,
