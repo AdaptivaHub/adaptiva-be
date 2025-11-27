@@ -112,3 +112,24 @@ class ErrorResponse(BaseModel):
     """Error response"""
     error: str
     detail: Optional[str] = None
+
+
+class AIChartGenerationRequest(BaseModel):
+    """Request for AI-powered chart generation"""
+    file_id: str
+    user_instructions: Optional[str] = Field(
+        default=None, 
+        description="User's instructions for what kind of chart to create"
+    )
+    base_prompt: Optional[str] = Field(
+        default=None,
+        description="System-level base prompt to guide AI behavior"
+    )
+
+
+class AIChartGenerationResponse(BaseModel):
+    """Response for AI-powered chart generation"""
+    chart_json: Dict[str, Any]
+    generated_code: str
+    explanation: str
+    message: str
