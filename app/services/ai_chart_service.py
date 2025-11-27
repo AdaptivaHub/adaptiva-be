@@ -15,6 +15,34 @@ from app.utils import get_dataframe
 from app.models import AIChartGenerationRequest, AIChartGenerationResponse
 
 
+def _clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean column names by removing newlines, extra whitespace, and other problematic characters.
+    Returns a copy of the dataframe with cleaned column names.
+    """
+    df = df.copy()
+    
+    # Create a mapping of old names to new names
+    new_columns = {}
+    for col in df.columns:
+        # Convert to string in case of non-string column names
+        new_name = str(col)
+        # Replace actual newlines and carriage returns with spaces
+        new_name = new_name.replace('\n', ' ').replace('\r', ' ')
+        # Replace literal escape sequences (e.g., "\\n" as text) with spaces
+        new_name = new_name.replace('\\n', ' ').replace('\\r', ' ').replace('\\t', ' ')
+        # Replace tabs with spaces
+        new_name = new_name.replace('\t', ' ')
+        # Collapse multiple spaces into one
+        new_name = ' '.join(new_name.split())
+        # Strip leading/trailing whitespace
+        new_name = new_name.strip()
+        new_columns[col] = new_name
+    
+    df.rename(columns=new_columns, inplace=True)
+    return df
+
+
 # Default base prompt for chart generation
 DEFAULT_BASE_PROMPT = """You are an expert data visualization assistant. Your task is to write Python code that creates beautiful, informative charts using Plotly.
 
@@ -254,6 +282,9 @@ def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationRes
     try:
         # Get the dataframe
         df = get_dataframe(request.file_id)
+        
+        # Clean column names (remove newlines, extra whitespace, etc.)
+        df = _clean_column_names(df)
         
         # Generate schema for AI
         schema = _get_dataframe_schema(df)
