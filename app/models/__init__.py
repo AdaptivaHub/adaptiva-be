@@ -133,3 +133,20 @@ class AIChartGenerationResponse(BaseModel):
     generated_code: str
     explanation: str
     message: str
+
+
+class PreviewRequest(BaseModel):
+    """Request for data preview"""
+    file_id: str
+    max_rows: int = Field(default=100, ge=1, le=1000, description="Maximum rows to preview")
+
+
+class PreviewResponse(BaseModel):
+    """Response for data preview with formatted values"""
+    file_id: str
+    headers: List[str]
+    data: List[Dict[str, str]]
+    total_rows: int
+    preview_rows: int
+    formatted: bool = Field(description="Whether Excel formatting was preserved")
+    message: str

@@ -3,7 +3,7 @@ from fastapi import UploadFile, HTTPException
 from typing import Tuple
 import io
 
-from app.utils import generate_file_id, store_dataframe
+from app.utils import generate_file_id, store_dataframe, store_file_content
 from app.models import FileUploadResponse
 
 
@@ -45,10 +45,12 @@ async def process_file_upload(file: UploadFile) -> FileUploadResponse:
             status_code=400,
             detail="The uploaded file is empty"
         )
-    
-    # Generate file ID and store dataframe
+      # Generate file ID and store dataframe
     file_id = generate_file_id()
     store_dataframe(file_id, df)
+    
+    # Store original file content for formatted preview
+    store_file_content(file_id, content, file.filename)
     
     # Prepare response
     response = FileUploadResponse(

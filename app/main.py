@@ -10,7 +10,8 @@ from app.routers import (
     insights_router,
     charts_router,
     ml_router,
-    export_router
+    export_router,
+    preview_router
 )
 
 # Create FastAPI app
@@ -38,6 +39,7 @@ app.include_router(insights_router, prefix="/api")
 app.include_router(charts_router, prefix="/api")
 app.include_router(ml_router, prefix="/api")
 app.include_router(export_router, prefix="/api")
+app.include_router(preview_router, prefix="/api")
 
 
 @app.get("/", tags=["Root"])
@@ -49,14 +51,14 @@ async def root():
         "message": "Welcome to Adaptiva Data Analysis API",
         "version": "1.0.0",
         "docs": "/docs",
-        "redoc": "/redoc",
-        "endpoints": {
+        "redoc": "/redoc",        "endpoints": {
             "upload": "/api/upload",
             "cleaning": "/api/cleaning",
             "insights": "/api/insights/{file_id}",
             "charts": "/api/charts",
             "ml": "/api/ml/train",
-            "export": "/api/export"
+            "export": "/api/export",
+            "preview": "/api/preview"
         }
     }
 

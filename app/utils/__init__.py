@@ -5,6 +5,8 @@ from .storage import (
     update_dataframe,
     delete_dataframe,
     list_file_ids,
+    store_file_content,
+    get_file_content,
     UPLOAD_DIR
 )
 
@@ -15,5 +17,7 @@ __all__ = [
     "update_dataframe",
     "delete_dataframe",
     "list_file_ids",
+    "store_file_content",
+    "get_file_content",
     "UPLOAD_DIR"
 ]
