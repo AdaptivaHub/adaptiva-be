@@ -2,6 +2,13 @@
 
 This folder contains all documentation for the Adaptiva Data Analysis API.
 
+## Phase One
+Upload Excel / CSV
+Automatic data cleaning
+Basic insights + charts
+Simple predictive models (linear/decision trees)
+PDF slide export (Power Point template)
+
 ## Structure
 
 ```
