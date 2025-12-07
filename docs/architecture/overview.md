@@ -2,7 +2,7 @@
 
 ## System Overview
 
-Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, and machine learning. It provides endpoints for file upload, data cleaning, insights generation, chart creation, ML model training, and export capabilities.
+Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, and machine learning. It provides endpoints for file upload, data cleaning, insights generation, chart creation and export capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -11,7 +11,7 @@ Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, a
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     FastAPI Application                          │
+│                     FastAPI Application                         │
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │                      Routers Layer                          ││
 │  │  upload │ charts │ cleaning │ insights │ ml │ export │preview│
@@ -253,7 +253,6 @@ async def global_exception_handler(request, exc):
 | plotly | Chart generation |
 | openai | AI-powered features |
 | RestrictedPython | Sandboxed code execution |
-| scikit-learn | Machine learning |
 | reportlab | PDF export |
 | python-pptx | PowerPoint export |
 

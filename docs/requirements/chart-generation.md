@@ -1,7 +1,7 @@
 # Feature: Chart Generation
 
 ## Overview
-Generate interactive data visualizations using Plotly. Supports both manual chart configuration and AI-powered automatic chart generation based on data analysis.
+Generate interactive data visualizations using Plotly.
 
 ## User Story
 As a data analyst,

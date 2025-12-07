@@ -7,7 +7,7 @@ The Adaptiva API follows RESTful conventions and uses JSON for request/response 
 ## Base URL
 
 - Development: `http://localhost:8000/api`
-- Production: `https://your-domain.com/api`
+- Production: `https://adaptiva-be.onrender.com/api`
 
 ## Authentication
 
@@ -47,10 +47,8 @@ Or for structured errors:
 | POST | /api/preview/ | Get formatted data preview |
 | POST | /api/cleaning/ | Clean data (remove duplicates, fill NA, etc.) |
 | GET | /api/insights/{file_id} | Get data insights and statistics |
-| POST | /api/charts/ | Generate chart (manual) |
 | POST | /api/charts/ai | Generate chart (AI-powered) |
-| POST | /api/ml/train | Train ML model |
-| POST | /api/export/ | Export data to PDF/PPTX |
+| POST | /api/export/ | Export data to PDF |
 
 ## Content Types
 
@@ -58,7 +56,7 @@ Or for structured errors:
 |----------|---------------------|----------------------|
 | /api/upload/ | multipart/form-data | application/json |
 | All others | application/json | application/json |
-| /api/export/ | application/json | application/pdf or application/pptx |
+| /api/export/ | application/json | application/pdf |
 
 ## Rate Limiting
 
@@ -69,13 +67,6 @@ Recommended: 100 requests/minute per IP
 
 - Maximum file size: 10MB (configurable)
 - Maximum rows: No hard limit (memory dependent)
-
-## OpenAPI Documentation
-
-Interactive documentation available at:
-- Swagger UI: `/docs`
-- ReDoc: `/redoc`
-- OpenAPI JSON: `/openapi.json`
 
 ## Detailed Endpoint Documentation
 
