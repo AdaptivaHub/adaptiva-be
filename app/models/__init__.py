@@ -33,6 +33,8 @@ class FileUploadResponse(BaseModel):
     columns: int
     column_names: List[str]
     message: str
+    sheets: Optional[List[str]] = Field(default=None, description="List of sheet names (Excel only)")
+    active_sheet: Optional[str] = Field(default=None, description="Sheet used for metadata (Excel only)")
 
 
 class DataCleaningRequest(BaseModel):
@@ -139,6 +141,7 @@ class PreviewRequest(BaseModel):
     """Request for data preview"""
     file_id: str
     max_rows: int = Field(default=100, ge=1, le=1000, description="Maximum rows to preview")
+    sheet_name: Optional[str] = Field(default=None, description="Sheet name to preview (Excel only)")
 
 
 class PreviewResponse(BaseModel):
@@ -150,3 +153,5 @@ class PreviewResponse(BaseModel):
     preview_rows: int
     formatted: bool = Field(description="Whether Excel formatting was preserved")
     message: str
+    sheet_name: Optional[str] = Field(default=None, description="Sheet being previewed (Excel only)")
+    available_sheets: Optional[List[str]] = Field(default=None, description="Available sheets (Excel only)")

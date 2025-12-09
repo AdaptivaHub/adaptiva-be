@@ -148,6 +148,53 @@ class TestUploadEndpoint:
         # Second sheet columns should NOT be present
         assert "Category" not in data["column_names"]
 
+    def test_upload_multi_sheet_excel_returns_sheet_names(self, client, excel_with_multiple_sheets):
+        """TC-11: Multi-sheet Excel returns sheets array with all sheet names."""
+        response = client.post(
+            "/api/upload/",
+            files={"file": ("multi.xlsx", excel_with_multiple_sheets, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Should include sheets array
+        assert "sheets" in data
+        assert data["sheets"] == ["Sales", "Costs"]
+        
+        # Should indicate which sheet was used for metadata
+        assert "active_sheet" in data
+        assert data["active_sheet"] == "Sales"
+
+    def test_upload_single_sheet_excel_returns_sheet_names(self, client, sample_excel_file):
+        """TC-12: Single-sheet Excel returns sheets array with 1 name."""
+        response = client.post(
+            "/api/upload/",
+            files={"file": ("single.xlsx", sample_excel_file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Should include sheets array with single sheet
+        assert "sheets" in data
+        assert len(data["sheets"]) == 1
+        assert data["active_sheet"] == data["sheets"][0]
+
+    def test_upload_csv_has_null_sheets(self, client, sample_csv_content):
+        """CSV files should have null sheets and active_sheet fields."""
+        response = client.post(
+            "/api/upload/",
+            files={"file": ("test.csv", sample_csv_content, "text/csv")}
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # CSV files should have null for sheet-related fields
+        assert data.get("sheets") is None
+        assert data.get("active_sheet") is None
+
 
 class TestUploadedDataPersistence:
     """Tests that uploaded data persists for subsequent operations."""

@@ -118,9 +118,26 @@ def format_excel_cell_value(cell: Cell) -> str:
     return str(value)
 
 
+def get_excel_sheet_names(file_content: bytes) -> List[str]:
+    """
+    Get list of sheet names from an Excel file.
+    
+    Args:
+        file_content: Raw bytes of the Excel file
+        
+    Returns:
+        List of sheet names
+    """
+    workbook = load_workbook(io.BytesIO(file_content), read_only=True)
+    sheet_names = workbook.sheetnames
+    workbook.close()
+    return sheet_names
+
+
 def get_excel_preview_data(
     file_content: bytes,
-    max_rows: int = 100
+    max_rows: int = 100,
+    sheet_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Extract data from Excel file preserving display formatting.
@@ -128,12 +145,26 @@ def get_excel_preview_data(
     Args:
         file_content: Raw bytes of the Excel file
         max_rows: Maximum number of rows to return for preview
+        sheet_name: Name of the sheet to preview (optional, defaults to first sheet)
         
     Returns:
-        Dictionary with headers and formatted data rows
+                Dictionary with headers and formatted data rows
     """
     workbook = load_workbook(io.BytesIO(file_content), data_only=False)
-    worksheet = workbook.active
+    available_sheets = workbook.sheetnames
+    
+    # Select the appropriate sheet
+    if sheet_name is not None:
+        if sheet_name not in available_sheets:
+            workbook.close()
+            raise ValueError(
+                f"Sheet '{sheet_name}' not found. Available sheets: {available_sheets}"
+            )
+        worksheet = workbook[sheet_name]
+        active_sheet_name = sheet_name
+    else:
+        worksheet = workbook.active
+        active_sheet_name = worksheet.title
     
     headers: List[str] = []
     data: List[Dict[str, str]] = []
@@ -150,8 +181,7 @@ def get_excel_preview_data(
             headers.append(str(header_value))
         else:
             headers.append(f"Column_{col}")
-    
-    # Extract data rows with formatting
+      # Extract data rows with formatting
     for row_idx in range(2, max_row + 1):
         row_data: Dict[str, str] = {}
         for col_idx, header in enumerate(headers, start=1):
@@ -165,7 +195,9 @@ def get_excel_preview_data(
         "headers": headers,
         "data": data,
         "total_rows": worksheet.max_row - 1,  # Exclude header
-        "formatted": True
+        "formatted": True,
+        "sheet_name": active_sheet_name,
+        "available_sheets": available_sheets
     }
 
 
@@ -182,7 +214,7 @@ def get_csv_preview_data(
         
     Returns:
         Dictionary with headers and data rows
-    """
+    """    
     df = pd.read_csv(io.BytesIO(file_content), nrows=max_rows)
     
     # Get total row count by reading just the length
@@ -212,14 +244,17 @@ def get_csv_preview_data(
         "headers": headers,
         "data": data,
         "total_rows": total_rows,
-        "formatted": False
+        "formatted": False,
+        "sheet_name": None,
+        "available_sheets": None
     }
 
 
 def get_preview_data(
     file_content: bytes,
     filename: str,
-    max_rows: int = 100
+    max_rows: int = 100,
+    sheet_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Get preview data from a file, preserving Excel formatting where possible.
@@ -228,6 +263,7 @@ def get_preview_data(
         file_content: Raw bytes of the file
         filename: Original filename to determine file type
         max_rows: Maximum number of rows to return
+        sheet_name: Name of the sheet to preview (Excel only)
         
     Returns:
         Dictionary with headers, data, and metadata
@@ -235,20 +271,21 @@ def get_preview_data(
     filename_lower = filename.lower()
     
     if filename_lower.endswith('.xlsx') or filename_lower.endswith('.xls'):
-        return get_excel_preview_data(file_content, max_rows)
+        return get_excel_preview_data(file_content, max_rows, sheet_name)
     elif filename_lower.endswith('.csv'):
         return get_csv_preview_data(file_content, max_rows)
     else:
         raise ValueError(f"Unsupported file format: {filename}")
 
 
-async def get_formatted_preview(file_id: str, max_rows: int = 100):
+async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: Optional[str] = None):
     """
     Get formatted preview for an uploaded file.
     
     Args:
         file_id: The ID of the uploaded file
         max_rows: Maximum number of rows to return
+        sheet_name: Name of the sheet to preview (Excel only)
         
     Returns:
         PreviewResponse with formatted data
@@ -265,7 +302,7 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100):
     content, filename = file_data
     
     try:
-        preview_data = get_preview_data(content, filename, max_rows)
+        preview_data = get_preview_data(content, filename, max_rows, sheet_name)
         
         return PreviewResponse(
             file_id=file_id,
@@ -274,7 +311,15 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100):
             total_rows=preview_data["total_rows"],
             preview_rows=len(preview_data["data"]),
             formatted=preview_data["formatted"],
-            message="Preview generated successfully"
+            message="Preview generated successfully",
+            sheet_name=preview_data.get("sheet_name"),
+            available_sheets=preview_data.get("available_sheets")
+        )
+    except ValueError as e:
+        # Handle sheet not found errors
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
         )
     except Exception as e:
         raise HTTPException(

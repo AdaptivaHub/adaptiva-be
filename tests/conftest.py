@@ -181,6 +181,17 @@ def uploaded_large_csv(client, large_csv_content) -> str:
     return response.json()["file_id"]
 
 
+@pytest.fixture
+def uploaded_multi_sheet_excel(client, excel_with_multiple_sheets) -> dict:
+    """Upload a multi-sheet Excel file and return the full response data."""
+    response = client.post(
+        "/api/upload/",
+        files={"file": ("multi.xlsx", excel_with_multiple_sheets, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+    )
+    assert response.status_code == 200
+    return response.json()
+
+
 # =============================================================================
 # DataFrame Fixtures (for unit tests)
 # =============================================================================

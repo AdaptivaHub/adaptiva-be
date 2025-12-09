@@ -18,7 +18,7 @@ So that I can analyze, visualize, and export insights from my data.
 ### AC-2: Excel File Upload
 - **Given**: A valid XLSX or XLS file
 - **When**: The file is uploaded via POST /api/upload
-- **Then**: The file is parsed (first sheet), stored, and a file_id is returned
+- **Then**: The file is parsed (first sheet by default), stored, and a file_id is returned with metadata including available sheet names
 
 ### AC-3: File Validation - Format
 - **Given**: A file with an unsupported format (e.g., .txt, .pdf)
@@ -45,6 +45,11 @@ So that I can analyze, visualize, and export insights from my data.
 - **When**: The response is received
 - **Then**: It includes file_id, filename, row count, column count, and column names
 
+### AC-8: Multi-Sheet Detection (Excel)
+- **Given**: An Excel file with multiple worksheets is uploaded
+- **When**: The file is successfully processed
+- **Then**: The response includes a list of all sheet names and indicates which sheet was used for the initial metadata
+
 ## API Contract
 
 ### Endpoint: `POST /api/upload/`
@@ -61,9 +66,13 @@ So that I can analyze, visualize, and export insights from my data.
   "rows": 1500,
   "columns": 10,
   "column_names": ["id", "name", "value", "date", ...],
-  "message": "File uploaded successfully"
+  "message": "File uploaded successfully",
+  "sheets": ["Sheet1", "Sheet2", "Sheet 3", ...],
+  "active_sheet": "Sheet1"
 }
 ```
+
+> **Note**: `sheets` and `active_sheet` are only included for Excel files. For CSV files, these fields are `null`.
 
 **Response (Error - 400):**
 ```json
@@ -98,6 +107,8 @@ So that I can analyze, visualize, and export insights from my data.
 | TC-8 | Special characters in headers | Headers with spaces, unicode | 200, headers preserved |
 | TC-9 | Mixed data types | Columns with mixed string/number | 200, parsed correctly |
 | TC-10 | XLS format | Old Excel format (.xls) | 200, file_id and metadata |
+| TC-11 | Multi-sheet Excel | XLSX with 3 sheets | 200, sheets array with 3 names |
+| TC-12 | Single-sheet Excel | XLSX with 1 sheet | 200, sheets array with 1 name |
 
 ## Data Storage
 
@@ -119,6 +130,5 @@ Storage is keyed by `file_id` (UUID) which is used in all subsequent operations.
 
 ## Notes
 - The first row of the file is assumed to be headers
-- For Excel files, only the first (active) sheet is processed
 - Column names are preserved as-is (including spaces and special characters)
 - The file_id is valid only for the current server session (in-memory storage)

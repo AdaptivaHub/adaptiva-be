@@ -18,7 +18,8 @@ async def preview_data(request: PreviewRequest):
     
     - **file_id**: ID of the uploaded file
     - **max_rows**: Maximum number of rows to return (default: 100, max: 1000)
+    - **sheet_name**: Name of the sheet to preview (Excel only, defaults to first sheet)
     
     Returns data with formatting preserved (dates, currencies, percentages, etc.)
     """
-    return await get_formatted_preview(request.file_id, request.max_rows)
+    return await get_formatted_preview(request.file_id, request.max_rows, request.sheet_name)
