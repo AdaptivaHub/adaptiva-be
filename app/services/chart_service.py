@@ -4,10 +4,11 @@ import json
 from fastapi import HTTPException
 from typing import Dict, Any
 
-from app.utils import get_dataframe
+from app.utils import get_dataframe, with_timeout, CHART_GENERATION_TIMEOUT
 from app.models import ChartGenerationRequest, ChartGenerationResponse, ChartType
 
 
+@with_timeout(CHART_GENERATION_TIMEOUT)
 def generate_chart(request: ChartGenerationRequest) -> ChartGenerationResponse:
     """
     Generate a chart using Plotly

@@ -11,7 +11,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from app.utils import get_dataframe
+from app.utils import get_dataframe, with_timeout, CHART_GENERATION_TIMEOUT
 from app.models import AIChartGenerationRequest, AIChartGenerationResponse
 
 
@@ -276,6 +276,7 @@ def _execute_code_safely(code: str, df: pd.DataFrame) -> Any:
     return fig
 
 
+@with_timeout(CHART_GENERATION_TIMEOUT)
 def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationResponse:
     """
     Generate a chart using AI to write the visualization code.

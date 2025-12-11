@@ -349,3 +349,53 @@ class TestChartJsonStructure:
             # Should be valid JSON
             parsed = json.loads(json_str)
             assert parsed == response.chart_json
+
+
+class TestChartGenerationTimeout:
+    """Tests for chart generation timeout behavior."""
+    
+    def test_timeout_raises_408_error(self):
+        """TC-16: Chart generation timeout raises HTTPException 408."""
+        from fastapi import HTTPException
+        import time
+        
+        def slow_get_dataframe(file_id):
+            """Simulate a very slow dataframe retrieval."""
+            time.sleep(35)  # Longer than 30 second timeout
+            return pd.DataFrame({'x': [1], 'y': [2]})
+        
+        with patch('app.services.chart_service.get_dataframe', side_effect=slow_get_dataframe):
+            request = ChartGenerationRequest(
+                file_id="test-id",
+                chart_type=ChartType.BAR,
+                x_column="x",
+                y_column="y"
+            )
+            
+            with pytest.raises(HTTPException) as exc_info:
+                generate_chart(request)
+            
+            assert exc_info.value.status_code == 408
+            assert "timed out" in exc_info.value.detail.lower()
+            assert "30 seconds" in exc_info.value.detail
+    
+    def test_fast_chart_generation_succeeds(self):
+        """Chart generation within timeout succeeds normally."""
+        df = pd.DataFrame({
+            'category': ['A', 'B', 'C'],
+            'value': [10, 20, 30]
+        })
+        
+        with patch('app.services.chart_service.get_dataframe', return_value=df):
+            request = ChartGenerationRequest(
+                file_id="test-id",
+                chart_type=ChartType.BAR,
+                x_column="category",
+                y_column="value"
+            )
+            
+            # Should complete without timeout
+            response = generate_chart(request)
+            
+            assert response.message == "Chart generated successfully"
+            assert "data" in response.chart_json

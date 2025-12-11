@@ -67,6 +67,11 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 - **When**: Chart generation is requested
 - **Then**: A 400 error is returned with details
 
+#### AC-16: Execution Timeout
+- **Given**: Chart generation takes longer than 30 seconds
+- **When**: The timeout is exceeded
+- **Then**: A 408 error is returned with timeout details
+
 ### API Contract - Manual Charts
 
 #### Endpoint: `POST /api/charts/`
@@ -111,6 +116,13 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 ```json
 {
   "detail": "File ID xxx not found"
+}
+```
+
+**Response (Error - 408 Timeout):**
+```json
+{
+  "detail": "Chart generation timed out after 30 seconds. Try reducing the data size or simplifying the chart."
 }
 ```
 
@@ -202,6 +214,7 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 | TC-9 | Invalid column | x_column="nonexistent" | 400, column not found |
 | TC-10 | Invalid file_id | Non-existent UUID | 404, file not found |
 | TC-11 | Custom title | title="My Custom Chart" | 200, chart with custom title |
+| TC-16 | Execution timeout | Large/complex data | 408, timeout error |
 
 ### AI Chart Generation
 
@@ -211,6 +224,7 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 | TC-13 | With instructions | file_id + user_instructions | 200, relevant chart |
 | TC-14 | Invalid file_id | Non-existent UUID | 404, file not found |
 | TC-15 | Empty dataset | file_id for empty data | Appropriate error |
+| TC-17 | AI execution timeout | Complex instructions | 408, timeout error |
 
 ## Dependencies
 
@@ -230,7 +244,12 @@ The AI-generated code runs in a restricted environment:
 - No network access
 - No module imports beyond allowed list
 - Blocked dangerous attributes (__class__, __globals__, etc.)
-- Timeout on execution (recommended)
+
+### Execution Timeout
+Both manual and AI chart generation have a **30-second timeout**:
+- Prevents long-running operations from blocking resources
+- Returns HTTP 408 status code on timeout
+- Uses cross-platform threading implementation (works on Windows/Linux/macOS)
 
 ### Allowed in Sandbox
 - pandas operations (pd)
