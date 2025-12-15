@@ -21,15 +21,15 @@
 - [x] Invalid sheet name handling (AC-9)
 
 ### Data Cleaning
-- [x] Remove duplicates
-- [x] Handle missing values (drop/fill)
-- [x] Drop columns
+- [ ] Remove duplicates
+- [ ] Handle missing values (drop/fill)
+- [ ] Drop columns
 
 ### Data Insights
-- [] Summary statistics
-- [] Missing values analysis
-- [] Data types info
-- [] Duplicate detection
+- [ ] Summary statistics
+- [ ] Missing values analysis
+- [ ] Data types info
+- [ ] Duplicate detection
 
 ### Chart Generation
 - [x] Bar chart (AC-1)
@@ -49,15 +49,15 @@
 - [x] Explanation return (AC-13)
 - [x] Sandboxed execution (AC-14, AC-15)
 
-### Machine Learning
-- [] Linear regression model
-- [] Decision tree model
-- [] Model metrics (MSE, RMSE, MAE, R²)
-- [] Sample predictions
+### Machine Learning (Megan)
+- [ ] Linear regression model
+- [ ] Decision tree model
+- [ ] Model metrics (MSE, RMSE, MAE, R²)
+- [ ] Sample predictions
 
 ### Export
-- [] PDF export
-- [] PowerPoint export
+- [ ] PDF export
+- [ ] PowerPoint export (?)
 - [ ] Include charts in export
 
 ---
@@ -72,7 +72,7 @@
 - [ ] ML service tests
 - [ ] Export service tests
 - [ ] Preview service tests
-- [] AI chart service tests
+- [ ] AI chart service tests
 
 ### Integration Tests
 - [x] Upload endpoint tests
@@ -91,7 +91,7 @@
 - [x] Chart generation requirements
 - [x] Data preview requirements
 - [ ] Data cleaning requirements
-- [ ] Insights requirements
+- [ ] Insights requirements (High Priority)
 - [ ] ML requirements
 - [ ] Export requirements
 - [x] Architecture overview
