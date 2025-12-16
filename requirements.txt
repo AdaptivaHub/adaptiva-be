@@ -13,6 +13,7 @@ pydantic>=2.6.0
 openai>=1.0.0
 RestrictedPython>=7.0
 python-dotenv>=1.0.0
+prophet>=1.1.4
 
 # Testing
 pytest>=8.0.0

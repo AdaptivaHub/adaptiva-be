@@ -26,10 +26,10 @@
 - [x] Drop columns
 
 ### Data Insights
-- [] Summary statistics
-- [] Missing values analysis
-- [] Data types info
-- [] Duplicate detection
+- [x] Summary statistics
+- [x] Missing values analysis
+- [x] Data types info
+- [x] Duplicate detection
 
 ### Chart Generation
 - [x] Bar chart (AC-1)
@@ -50,15 +50,47 @@
 - [x] Sandboxed execution (AC-14, AC-15)
 
 ### Machine Learning
-- [] Linear regression model
-- [] Decision tree model
-- [] Model metrics (MSE, RMSE, MAE, R²)
-- [] Sample predictions
+- [x] Linear regression model
+- [x] Decision tree model
+- [x] Model metrics (MSE, RMSE, MAE, R²)
+- [x] Sample predictions
 
 ### Export
-- [] PDF export
-- [] PowerPoint export
+- [x] PDF export
+- [x] PowerPoint export
 - [ ] Include charts in export
+
+---
+
+## Phase Two Features (AI Agents)
+
+### Forecasting Agent
+- [x] Prophet time-series forecasting
+- [x] Auto-detect forecastable columns
+- [x] Configurable forecast periods
+- [x] Trend analysis (increasing/decreasing)
+- [x] Confidence intervals
+
+### Marketing Strategy Agent
+- [x] AI-powered campaign generation
+- [x] Business context input
+- [x] Key insights extraction
+- [x] Multiple campaign suggestions
+- [x] Tactics and timing recommendations
+
+### Content Generation Agent
+- [x] Ad copy generation (headlines, captions)
+- [x] Hashtag generation
+- [x] Call-to-action suggestions
+- [x] Image generation (Pollinations AI)
+- [x] Multi-platform support
+
+### Agent Orchestrator
+- [x] Full pipeline endpoint
+- [x] Sequential agent execution
+- [x] Results aggregation
+- [ ] Session persistence (Low priority)
+- [ ] WebSocket for progress updates (Low priority)
 
 ---
 
@@ -72,7 +104,10 @@
 - [ ] ML service tests
 - [ ] Export service tests
 - [ ] Preview service tests
-- [] AI chart service tests
+- [ ] AI chart service tests
+- [ ] Forecast service tests
+- [ ] Marketing service tests
+- [ ] Content service tests
 
 ### Integration Tests
 - [x] Upload endpoint tests
@@ -82,6 +117,7 @@
 - [ ] Insights endpoint tests
 - [ ] ML endpoint tests
 - [ ] Export endpoint tests
+- [ ] Agents endpoint tests
 
 ---
 
@@ -94,14 +130,19 @@
 - [ ] Insights requirements
 - [ ] ML requirements
 - [ ] Export requirements
+- [ ] Agents requirements
 - [x] Architecture overview
 - [x] API specs (OpenAPI)
+- [x] Project comparison
 
 ---
 
 ## Production Readiness
 
 - [ ] Move to Redis/PostgreSQL storage
+- [ ] S3 file storage
+- [ ] API versioning
 - [ ] Rate limiting for AI calls
 - [ ] Response caching
-- [ ] Authentication and security
+- [ ] CORS configuration for production
+- [ ] Environment-based config

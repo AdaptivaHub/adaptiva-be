@@ -14,6 +14,16 @@ from .timeout import (
     ChartTimeoutError,
     CHART_GENERATION_TIMEOUT
 )
+from .rate_limiter import (
+    check_rate_limit,
+    record_usage,
+    get_usage_stats,
+    require_rate_limit,
+    rate_limit_middleware_check,
+    estimate_cost_cents,
+    get_client_ip,
+    DEFAULT_DAILY_LIMIT_CENTS
+)
 
 __all__ = [
     "generate_file_id",
@@ -27,5 +37,13 @@ __all__ = [
     "UPLOAD_DIR",
     "with_timeout",
     "ChartTimeoutError",
-    "CHART_GENERATION_TIMEOUT"
+    "CHART_GENERATION_TIMEOUT",
+    "check_rate_limit",
+    "record_usage",
+    "get_usage_stats",
+    "require_rate_limit",
+    "rate_limit_middleware_check",
+    "estimate_cost_cents",
+    "get_client_ip",
+    "DEFAULT_DAILY_LIMIT_CENTS"
 ]
