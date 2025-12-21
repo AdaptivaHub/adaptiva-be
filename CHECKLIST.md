@@ -26,17 +26,10 @@
 - [ ] Drop columns
 
 ### Data Insights
-<<<<<<< HEAD
 - [ ] Summary statistics
 - [ ] Missing values analysis
 - [ ] Data types info
 - [ ] Duplicate detection
-=======
-- [] Summary statistics
-- [] Missing values analysis
-- [] Data types info
-- [] Duplicate detection
->>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 
 ### Chart Generation
 - [x] Bar chart (AC-1)
@@ -56,7 +49,6 @@
 - [x] Explanation return (AC-13)
 - [x] Sandboxed execution (AC-14, AC-15)
 
-<<<<<<< HEAD
 ### Machine Learning (Megan)
 - [ ] Linear regression model
 - [ ] Decision tree model
@@ -66,17 +58,6 @@
 ### Export
 - [ ] PDF export
 - [ ] PowerPoint export (?)
-=======
-### Machine Learning
-- [] Linear regression model
-- [] Decision tree model
-- [] Model metrics (MSE, RMSE, MAE, R²)
-- [] Sample predictions
-
-### Export
-- [] PDF export
-- [] PowerPoint export
->>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 - [ ] Include charts in export
 
 ---
@@ -91,11 +72,7 @@
 - [ ] ML service tests
 - [ ] Export service tests
 - [ ] Preview service tests
-<<<<<<< HEAD
 - [ ] AI chart service tests
-=======
-- [] AI chart service tests
->>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 
 ### Integration Tests
 - [x] Upload endpoint tests
