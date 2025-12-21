@@ -118,25 +118,25 @@
 - [ ] Authentication and security
 
 ### Authentication & Authorization
-- [ ] User registration (AC-1 to AC-4)
-- [ ] User login with JWT (AC-5 to AC-7)
-- [ ] Token refresh mechanism (AC-8, AC-9)
-- [ ] Logout functionality (AC-10)
-- [ ] Protected route middleware (AC-11 to AC-14)
-- [ ] Current user endpoint
-- [ ] Password hashing with bcrypt
-- [ ] SQLite database setup (dev)
+- [X] User registration (AC-1 to AC-4)
+- [X] User login with JWT (AC-5 to AC-7)
+- [X] Token refresh mechanism (AC-8, AC-9)
+- [X] Logout functionality (AC-10)
+- [X] Protected route middleware (AC-11 to AC-14)
+- [X] Current user endpoint
+- [X] Password hashing with bcrypt
+- [X] SQLite database setup (dev)
 - [x] Requirements document (`docs/requirements/authentication.md`)
 
 ### Anonymous Rate Limiting
-- [ ] IP-based rate limiting (AC-15)
-- [ ] Anonymous session token generation
-- [ ] Combined IP + session tracking (AC-19)
-- [ ] Rate limit exceeded response - 429 (AC-16)
-- [ ] Authenticated user bypass (AC-17)
-- [ ] 24-hour rolling window reset (AC-18)
-- [ ] Rate limit headers (X-RateLimit-*)
-- [ ] Global daily limit safeguard (1000 queries)
-- [ ] Burst limit protection (10/minute per IP)
-- [ ] Frontend session storage integration
-- [ ] Rate limit UI warnings
+- [X] IP-based rate limiting (AC-15)
+- [X] Anonymous session token generation
+- [X] Combined IP + session tracking (AC-19)
+- [X] Rate limit exceeded response - 429 (AC-16)
+- [X] Authenticated user bypass (AC-17) (Temporary)
+- [X] 24-hour rolling window reset (AC-18)
+- [X] Rate limit headers (X-RateLimit-*)
+- [X] Global daily limit safeguard (1000 queries)
+- [X] Burst limit protection (10/minute per IP)
+- [X] Frontend session storage integration
+- [X] Rate limit UI warnings
