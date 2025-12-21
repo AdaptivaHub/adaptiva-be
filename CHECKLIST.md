@@ -21,9 +21,16 @@
 - [x] Invalid sheet name handling (AC-9)
 
 ### Data Cleaning
-- [ ] Remove duplicates
-- [ ] Handle missing values (drop/fill)
-- [ ] Drop columns
+- [x] Remove duplicates
+- [x] Handle missing values (drop/fill)
+- [x] Drop columns
+- [x] Enhanced cleaning service (Excel Copilot-like)
+  - [x] Column name normalization
+  - [x] Empty row/column removal
+  - [x] Smart missing value filling (median/mode)
+  - [x] Automatic type detection
+  - [x] Cleaning operation log
+- [x] Requirements document (`docs/requirements/data-cleaning.md`)
 
 ### Data Insights
 - [ ] Summary statistics
@@ -67,6 +74,7 @@
 ### Unit Tests
 - [x] Upload service tests
 - [x] Chart service tests
+- [x] Enhanced cleaning service tests
 - [ ] Cleaning service tests
 - [ ] Insights service tests
 - [ ] ML service tests
@@ -90,7 +98,7 @@
 - [x] File upload requirements
 - [x] Chart generation requirements
 - [x] Data preview requirements
-- [ ] Data cleaning requirements
+- [x] Data cleaning requirements
 - [ ] Insights requirements (High Priority)
 - [ ] ML requirements
 - [ ] Export requirements

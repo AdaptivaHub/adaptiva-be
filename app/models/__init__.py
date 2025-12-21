@@ -56,6 +56,53 @@ class DataCleaningResponse(BaseModel):
     message: str
 
 
+class CleaningOperation(BaseModel):
+    """Single cleaning operation log entry"""
+    operation: str = Field(description="Name of the operation performed")
+    details: str = Field(description="Details about the operation")
+    affected_count: int = Field(default=0, description="Number of items affected")
+
+
+class ColumnChanges(BaseModel):
+    """Summary of column changes during cleaning"""
+    renamed: Dict[str, str] = Field(default_factory=dict, description="Old name to new name mapping")
+    dropped: List[str] = Field(default_factory=list, description="List of dropped columns")
+    type_converted: Dict[str, str] = Field(default_factory=dict, description="Column to new type mapping")
+
+
+class MissingValuesSummary(BaseModel):
+    """Missing values before and after cleaning"""
+    before: Dict[str, int] = Field(default_factory=dict, description="Missing values per column before")
+    after: Dict[str, int] = Field(default_factory=dict, description="Missing values per column after")
+
+
+class EnhancedCleaningRequest(BaseModel):
+    """Request for enhanced data cleaning with Excel Copilot-like features"""
+    file_id: str = Field(description="UUID of uploaded file")
+    normalize_columns: bool = Field(default=False, description="Normalize column names (lowercase, strip, replace spaces)")
+    remove_empty_rows: bool = Field(default=True, description="Remove rows where all values are null")
+    remove_empty_columns: bool = Field(default=True, description="Remove columns where all values are null")
+    drop_duplicates: bool = Field(default=True, description="Remove duplicate rows")
+    drop_na: bool = Field(default=False, description="Remove rows with any missing values")
+    smart_fill_missing: bool = Field(default=False, description="Smart fill missing values (median for numeric, mode for categorical)")
+    auto_detect_types: bool = Field(default=False, description="Auto-detect and convert data types (dates, numbers)")
+    fill_na: Optional[Dict[str, Any]] = Field(default=None, description="Manual fill values per column")
+    columns_to_drop: Optional[List[str]] = Field(default=None, description="List of column names to drop")
+
+
+class EnhancedCleaningResponse(BaseModel):
+    """Response for enhanced data cleaning with detailed log"""
+    file_id: str = Field(description="File identifier")
+    rows_before: int = Field(description="Original row count")
+    rows_after: int = Field(description="Final row count")
+    columns_before: int = Field(description="Original column count")
+    columns_after: int = Field(description="Final column count")
+    operations_log: List[CleaningOperation] = Field(default_factory=list, description="Log of all operations performed")
+    column_changes: ColumnChanges = Field(default_factory=ColumnChanges, description="Summary of column changes")
+    missing_values_summary: MissingValuesSummary = Field(default_factory=MissingValuesSummary, description="Missing values before/after")
+    message: str = Field(description="Summary message")
+
+
 class DataInsightsResponse(BaseModel):
     """Response for data insights"""
     file_id: str

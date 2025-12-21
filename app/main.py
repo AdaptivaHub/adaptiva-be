@@ -51,9 +51,11 @@ async def root():
         "message": "Welcome to Adaptiva Data Analysis API",
         "version": "1.0.0",
         "docs": "/docs",
-        "redoc": "/redoc",        "endpoints": {
+        "redoc": "/redoc",
+        "endpoints": {
             "upload": "/api/upload",
             "cleaning": "/api/cleaning",
+            "cleaning_enhanced": "/api/cleaning/enhanced",
             "insights": "/api/insights/{file_id}",
             "charts": "/api/charts",
             "ml": "/api/ml/train",
