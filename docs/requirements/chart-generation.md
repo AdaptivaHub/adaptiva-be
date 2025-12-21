@@ -16,6 +16,9 @@ Generate charts by specifying chart type and column mappings.
 ### 2. AI-Powered Chart Generation
 Use AI (OpenAI) to analyze data and automatically generate appropriate visualizations.
 
+### 3. Chart Editor (Hybrid Mode)
+AI generates initial chart with extracted settings, allowing users to manually adjust chart configuration (x-axis, y-axis, color, chart type) without re-invoking AI.
+
 ---
 
 ## Manual Chart Generation
@@ -162,6 +165,16 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 - **When**: Execution is attempted
 - **Then**: An error is returned, not a system compromise
 
+#### AC-18: Chart Settings Extraction
+- **Given**: A successful AI chart generation
+- **When**: The response is received
+- **Then**: It includes extracted chart settings (chart_type, x_column, y_column, color_column, title) for the Chart Editor
+
+#### AC-19: Chart Settings Format
+- **Given**: AI generates a chart
+- **When**: Settings are extracted
+- **Then**: Settings match the ChartSettings schema with optional fields for flexibility
+
 ### API Contract - AI Charts
 
 #### Endpoint: `POST /api/charts/ai`
@@ -185,6 +198,15 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
   },
   "generated_code": "fig = px.bar(df, x='region', y='sales', title='Sales by Region')",
   "explanation": "This bar chart shows the total sales for each region, making it easy to compare performance across different areas.",
+  "chart_settings": {
+    "chart_type": "bar",
+    "x_column": "region",
+    "y_column": "sales",
+    "color_column": null,
+    "group_by": null,
+    "title": "Sales by Region",
+    "aggregation": "sum"
+  },
   "message": "Chart generated successfully"
 }
 ```
@@ -226,6 +248,8 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 | TC-14 | Invalid file_id | Non-existent UUID | 404, file not found |
 | TC-15 | Empty dataset | file_id for empty data | Appropriate error |
 | TC-17 | AI execution timeout | Complex instructions | 408, timeout error |
+| TC-18 | Chart settings extraction | file_id + instructions | 200, includes chart_settings |
+| TC-19 | Settings match chart | Any AI chart | chart_settings reflects actual chart params |
 
 ## Dependencies
 

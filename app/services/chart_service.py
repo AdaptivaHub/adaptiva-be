@@ -15,13 +15,12 @@ def generate_chart(request: ChartGenerationRequest) -> ChartGenerationResponse:
     
     Args:
         request: ChartGenerationRequest with chart parameters
-        
-    Returns:
+          Returns:
         ChartGenerationResponse with chart JSON
     """
     try:
-        # Get the dataframe
-        df = get_dataframe(request.file_id)
+        # Get the dataframe using composite key for Excel files
+        df = get_dataframe(request.file_id, request.sheet_name)
         
         # Validate columns exist
         if request.x_column not in df.columns:

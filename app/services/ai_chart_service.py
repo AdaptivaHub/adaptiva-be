@@ -12,7 +12,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from app.utils import get_dataframe, with_timeout, CHART_GENERATION_TIMEOUT
-from app.models import AIChartGenerationRequest, AIChartGenerationResponse
+from app.models import AIChartGenerationRequest, AIChartGenerationResponse, ChartSettings
 
 
 def _clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -68,6 +68,22 @@ fig = px.bar(df, x='category', y='value', title='My Chart', color='category')
 fig.update_layout(template='plotly_white')
 ```
 """
+
+
+# Prompt for extracting chart settings
+CHART_SETTINGS_PROMPT = """Analyze the following Python chart code and extract the chart configuration settings.
+Return ONLY a valid JSON object with these fields (use null for any that don't apply):
+{
+  "chart_type": "bar|line|scatter|histogram|box|pie|area|heatmap|other",
+  "x_column": "column name used for x-axis or null",
+  "y_column": "column name used for y-axis or null",
+  "color_column": "column name used for color/grouping or null",
+  "group_by": "column name used for grouping or null",
+  "title": "chart title or null",
+  "aggregation": "sum|mean|count|median|min|max or null"
+}
+
+Respond with ONLY the JSON object, no other text or markdown."""
 
 
 def _get_dataframe_schema(df: pd.DataFrame) -> Dict[str, Any]:
@@ -149,12 +165,58 @@ def _generate_chart_code(
             {"role": "user", "content": f"Code:\n{code_response}\n\nData columns: {[c['name'] for c in schema['columns']]}"}
         ],
         temperature=0.5,
-        max_tokens=150
-    )
+        max_tokens=150    )
     
     explanation = explanation_response.choices[0].message.content.strip()
     
     return code_response, explanation
+
+
+def _extract_chart_settings(code: str, schema: Dict[str, Any]) -> Optional[ChartSettings]:
+    """
+    Use AI to extract chart settings from the generated code.
+    Returns ChartSettings object or None if extraction fails.
+    """
+    try:
+        client = OpenAI()
+        
+        column_names = [c['name'] for c in schema['columns']]
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": CHART_SETTINGS_PROMPT},
+                {"role": "user", "content": f"Code:\n{code}\n\nAvailable columns: {column_names}"}
+            ],
+            temperature=0.1,
+            max_tokens=300
+        )
+        
+        settings_text = response.choices[0].message.content.strip()
+        
+        # Remove markdown code blocks if present
+        if "```json" in settings_text:
+            settings_text = settings_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in settings_text:
+            settings_text = settings_text.split("```")[1].split("```")[0].strip()
+        
+        # Parse JSON
+        settings_dict = json.loads(settings_text)
+        
+        # Create ChartSettings object
+        return ChartSettings(
+            chart_type=settings_dict.get("chart_type"),
+            x_column=settings_dict.get("x_column"),
+            y_column=settings_dict.get("y_column"),
+            color_column=settings_dict.get("color_column"),
+            group_by=settings_dict.get("group_by"),
+            title=settings_dict.get("title"),
+            aggregation=settings_dict.get("aggregation")
+        )
+    except Exception as e:
+        # Log error but don't fail the request
+        print(f"Warning: Failed to extract chart settings: {e}")
+        return None
 
 
 def _create_restricted_globals(df: pd.DataFrame) -> Dict[str, Any]:
@@ -297,8 +359,7 @@ def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationRes
         
         # Clean column names (remove newlines, extra whitespace, etc.)
         df = _clean_column_names(df)
-        
-        # Generate schema for AI
+          # Generate schema for AI
         schema = _get_dataframe_schema(df)
         
         # Generate code using AI
@@ -311,6 +372,9 @@ def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationRes
         # Execute code safely
         fig = _execute_code_safely(generated_code, df)
         
+        # Extract chart settings for the Chart Editor
+        chart_settings = _extract_chart_settings(generated_code, schema)
+        
         # Convert to JSON
         chart_json = json.loads(fig.to_json())
         
@@ -318,7 +382,8 @@ def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationRes
             chart_json=chart_json,
             generated_code=generated_code,
             explanation=explanation,
-            message="AI chart generated successfully"
+            message="AI chart generated successfully",
+            chart_settings=chart_settings
         )
         
     except ValueError as e:

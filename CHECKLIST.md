@@ -55,6 +55,8 @@
 - [x] Generated code return (AC-12)
 - [x] Explanation return (AC-13)
 - [x] Sandboxed execution (AC-14, AC-15)
+- [x] Chart settings extraction (AC-18)
+- [x] Chart Editor hybrid mode (AC-19)
 
 ### Machine Learning (Megan)
 - [ ] Linear regression model

@@ -109,6 +109,10 @@ class DataInsightsResponse(BaseModel):
 class ChartGenerationRequest(BaseModel):
     """Request for chart generation"""
     file_id: str
+    sheet_name: Optional[str] = Field(
+        default=None,
+        description="Sheet name for Excel files (uses composite key file_id:sheet_name)"
+    )
     chart_type: ChartType
     x_column: str
     y_column: Optional[str] = None
@@ -172,12 +176,27 @@ class AIChartGenerationRequest(BaseModel):
     )
 
 
+class ChartSettings(BaseModel):
+    """Extracted chart settings for the Chart Editor"""
+    chart_type: Optional[str] = Field(default=None, description="Type of chart (bar, line, scatter, histogram, box, pie)")
+    x_column: Optional[str] = Field(default=None, description="Column used for x-axis")
+    y_column: Optional[str] = Field(default=None, description="Column used for y-axis")
+    color_column: Optional[str] = Field(default=None, description="Column used for color grouping")
+    group_by: Optional[str] = Field(default=None, description="Column used for grouping data")
+    title: Optional[str] = Field(default=None, description="Chart title")
+    aggregation: Optional[str] = Field(default=None, description="Aggregation function (sum, mean, count, etc.)")
+
+
 class AIChartGenerationResponse(BaseModel):
     """Response for AI-powered chart generation"""
     chart_json: Dict[str, Any]
     generated_code: str
     explanation: str
     message: str
+    chart_settings: Optional[ChartSettings] = Field(
+        default=None,
+        description="Extracted chart settings for the Chart Editor"
+    )
 
 
 class PreviewRequest(BaseModel):
