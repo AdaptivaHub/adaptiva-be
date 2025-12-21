@@ -74,7 +74,7 @@ class TestCleaningEndpoint:
 
 
 class TestEnhancedCleaningEndpoint:
-    """Integration tests for POST /api/cleaning/enhanced."""
+    """Integration tests for enhanced cleaning features on POST /api/cleaning/."""
     
     def test_enhanced_cleaning_normalize_columns(self, client):
         """TC-1: Normalize column names."""
@@ -88,9 +88,9 @@ class TestEnhancedCleaningEndpoint:
         assert upload_response.status_code == 200
         file_id = upload_response.json()["file_id"]
         
-        # Clean with column normalization
+        # Clean with column normalization (using unified endpoint)
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": True,
@@ -127,7 +127,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,
@@ -156,7 +156,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,
@@ -185,7 +185,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,
@@ -220,7 +220,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,
@@ -251,7 +251,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,
@@ -283,7 +283,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": True,
@@ -304,7 +304,7 @@ class TestEnhancedCleaningEndpoint:
     def test_enhanced_cleaning_file_not_found(self, client):
         """TC-9: Cleaning with invalid file_id returns 404."""
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": "non-existent-file-id",
                 "normalize_columns": True
@@ -325,7 +325,7 @@ class TestEnhancedCleaningEndpoint:
         file_id = upload_response.json()["file_id"]
         
         response = client.post(
-            "/api/cleaning/enhanced",
+            "/api/cleaning/",
             json={
                 "file_id": file_id,
                 "normalize_columns": False,

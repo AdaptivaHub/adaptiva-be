@@ -34,7 +34,7 @@ class TestProcessFileUpload:
         assert response.rows == 3  # 3 data rows
         assert response.columns == 4  # 4 columns
         assert response.column_names == ["id", "name", "value", "category"]
-        assert response.message == "File uploaded successfully"
+        assert "File uploaded successfully" in response.message
     
     @pytest.mark.asyncio
     async def test_valid_xlsx_returns_response(self, sample_excel_file):

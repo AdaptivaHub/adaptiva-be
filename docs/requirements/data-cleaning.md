@@ -1,7 +1,9 @@
-# Feature: Enhanced Data Cleaning Service
+# Feature: Unified Data Cleaning Service
 
 ## Overview
-An enhanced data cleaning service that mimics Excel Copilot's data cleaning functionality. The service provides intelligent data cleaning operations including column name normalisation, empty row/column removal, missing value detection and smart filling, type detection, and comprehensive cleaning operation logging.
+A unified data cleaning service that provides comprehensive data cleaning functionality, including Excel Copilot-like features. The service offers intelligent data cleaning operations including column name normalisation, empty row/column removal, missing value detection and smart filling, type detection, duplicate removal, and comprehensive cleaning operation logging.
+
+**Note:** This is a single, unified cleaning endpoint that combines all basic and enhanced cleaning features. The legacy `/cleaning/enhanced` endpoint has been deprecated and merged into the main `/cleaning/` endpoint.
 
 ## User Story
 As a **data analyst using Adaptiva**,
@@ -52,7 +54,7 @@ So that **I can quickly prepare messy datasets for analysis without manual clean
 
 ## API Contract
 
-### Endpoint: `POST /api/cleaning/enhanced`
+### Endpoint: `POST /api/cleaning/`
 
 **Request:**
 ```json
@@ -137,9 +139,9 @@ So that **I can quickly prepare messy datasets for analysis without manual clean
 - `app.models`: Pydantic models for request/response validation
 
 ## Notes
-- The enhanced cleaning service is backward compatible - the original `/cleaning/` endpoint remains unchanged
 - Column name normalization replaces spaces with underscores and special characters with empty strings
 - Smart fill uses median for numeric types and mode (most frequent value) for categorical types
 - Type detection checks column names for patterns like 'date', 'time', 'created', 'updated'
 - The operations log provides an audit trail for all cleaning actions
 - All cleaning operations are atomic - if any operation fails, changes are not persisted
+- Excel files support sheet-specific cleaning using composite keys (file_id:sheet_name)

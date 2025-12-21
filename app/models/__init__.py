@@ -38,24 +38,23 @@ class FileUploadResponse(BaseModel):
 
 
 class DataCleaningRequest(BaseModel):
-    """Request for data cleaning"""
-    file_id: str
+    """
+    Request for comprehensive data cleaning with Excel Copilot-like features.
+    
+    Uses composite key (file_id:sheet_name) for Excel files to ensure
+    the correct sheet is cleaned.
+    """
+    file_id: str = Field(description="UUID of uploaded file")
     sheet_name: Optional[str] = Field(default=None, description="Sheet name for Excel files (uses composite key file_id:sheet_name)")
+    normalize_columns: bool = Field(default=False, description="Normalize column names (lowercase, strip, replace spaces)")
+    remove_empty_rows: bool = Field(default=True, description="Remove rows where all values are null")
+    remove_empty_columns: bool = Field(default=True, description="Remove columns where all values are null")
     drop_duplicates: bool = Field(default=True, description="Remove duplicate rows")
-    drop_na: bool = Field(default=False, description="Remove rows with missing values")
-    fill_na: Optional[Dict[str, Any]] = Field(default=None, description="Fill missing values with specified values")
-    columns_to_drop: Optional[List[str]] = Field(default=None, description="List of columns to drop")
-
-
-class DataCleaningResponse(BaseModel):
-    """Response for data cleaning"""
-    file_id: str
-    sheet_name: Optional[str] = Field(default=None, description="Sheet name that was cleaned (Excel only)")
-    rows_before: int
-    rows_after: int
-    columns_before: int
-    columns_after: int
-    message: str
+    drop_na: bool = Field(default=False, description="Remove rows with any missing values")
+    smart_fill_missing: bool = Field(default=False, description="Smart fill missing values (median for numeric, mode for categorical)")
+    auto_detect_types: bool = Field(default=False, description="Auto-detect and convert data types (dates, numbers)")
+    fill_na: Optional[Dict[str, Any]] = Field(default=None, description="Manual fill values per column")
+    columns_to_drop: Optional[List[str]] = Field(default=None, description="List of column names to drop")
 
 
 class CleaningOperation(BaseModel):
@@ -78,23 +77,12 @@ class MissingValuesSummary(BaseModel):
     after: Dict[str, int] = Field(default_factory=dict, description="Missing values per column after")
 
 
-class EnhancedCleaningRequest(BaseModel):
-    """Request for enhanced data cleaning with Excel Copilot-like features"""
-    file_id: str = Field(description="UUID of uploaded file")
-    sheet_name: Optional[str] = Field(default=None, description="Sheet name for Excel files (uses composite key file_id:sheet_name)")
-    normalize_columns: bool = Field(default=False, description="Normalize column names (lowercase, strip, replace spaces)")
-    remove_empty_rows: bool = Field(default=True, description="Remove rows where all values are null")
-    remove_empty_columns: bool = Field(default=True, description="Remove columns where all values are null")
-    drop_duplicates: bool = Field(default=True, description="Remove duplicate rows")
-    drop_na: bool = Field(default=False, description="Remove rows with any missing values")
-    smart_fill_missing: bool = Field(default=False, description="Smart fill missing values (median for numeric, mode for categorical)")
-    auto_detect_types: bool = Field(default=False, description="Auto-detect and convert data types (dates, numbers)")
-    fill_na: Optional[Dict[str, Any]] = Field(default=None, description="Manual fill values per column")
-    columns_to_drop: Optional[List[str]] = Field(default=None, description="List of column names to drop")
-
-
-class EnhancedCleaningResponse(BaseModel):
-    """Response for enhanced data cleaning with detailed log"""
+class DataCleaningResponse(BaseModel):
+    """
+    Response for data cleaning with detailed operation log.
+    
+    Includes comprehensive information about all cleaning operations performed.
+    """
     file_id: str = Field(description="File identifier")
     sheet_name: Optional[str] = Field(default=None, description="Sheet name that was cleaned (Excel only)")
     rows_before: int = Field(description="Original row count")

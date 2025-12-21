@@ -1,5 +1,6 @@
+# filepath: c:\GitHub\adaptiva-be\tests\unit\test_cleaning_service.py
 """
-Unit tests for the Enhanced Data Cleaning Service
+Unit tests for the Data Cleaning Service
 
 Tests cover:
 - Column name normalization
@@ -15,15 +16,15 @@ import numpy as np
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
-from app.services.enhanced_cleaning_service import (
-    enhanced_clean_data,
+from app.services.cleaning_service import (
+    clean_data,
     _normalize_column_name,
     _is_date_column,
     _try_convert_to_datetime,
     _try_convert_to_numeric,
     _get_missing_values_summary
 )
-from app.models import EnhancedCleaningRequest
+from app.models import DataCleaningRequest
 
 
 class TestNormalizeColumnName:
@@ -126,8 +127,8 @@ class TestGetMissingValuesSummary:
         assert result == {}
 
 
-class TestEnhancedCleanData:
-    """Integration tests for the enhanced_clean_data function"""
+class TestCleanData:
+    """Integration tests for the clean_data function"""
     
     @pytest.fixture
     def sample_df(self):
@@ -140,13 +141,13 @@ class TestEnhancedCleanData:
             'Empty Col': [None, None, None, None, None]
         })
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_normalize_columns(self, mock_update, mock_get, sample_df):
         """Test column name normalization"""
         mock_get.return_value = sample_df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=True,
             remove_empty_rows=False,
@@ -154,19 +155,19 @@ class TestEnhancedCleanData:
             drop_duplicates=False
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         assert 'normalize_columns' in [op.operation for op in response.operations_log]
         assert 'first_name' in response.column_changes.renamed.values()
         assert 'last_name' in response.column_changes.renamed.values()
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_remove_empty_rows(self, mock_update, mock_get, sample_df):
         """Test empty row removal"""
         mock_get.return_value = sample_df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=True,
@@ -174,19 +175,19 @@ class TestEnhancedCleanData:
             drop_duplicates=False
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # Row 4 and 5 should be removed (all None/empty)
         assert response.rows_before == 5
         assert response.rows_after < 5
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_remove_empty_columns(self, mock_update, mock_get, sample_df):
         """Test empty column removal"""
         mock_get.return_value = sample_df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -194,20 +195,20 @@ class TestEnhancedCleanData:
             drop_duplicates=False
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # 'Empty Col' should be removed
         assert response.columns_before == 5
         assert response.columns_after == 4
         assert 'Empty Col' in response.column_changes.dropped
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_drop_duplicates(self, mock_update, mock_get, sample_df):
         """Test duplicate row removal"""
         mock_get.return_value = sample_df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -215,15 +216,15 @@ class TestEnhancedCleanData:
             drop_duplicates=True
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # Row 1 and 3 are duplicates (John Doe, 30, 2023-01-01)
         duplicate_op = next((op for op in response.operations_log if op.operation == 'drop_duplicates'), None)
         if duplicate_op:
             assert duplicate_op.affected_count >= 1
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_smart_fill_missing(self, mock_update, mock_get):
         """Test smart missing value filling"""
         df = pd.DataFrame({
@@ -232,7 +233,7 @@ class TestEnhancedCleanData:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -241,7 +242,7 @@ class TestEnhancedCleanData:
             smart_fill_missing=True
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         fill_op = next((op for op in response.operations_log if op.operation == 'smart_fill_missing'), None)
         assert fill_op is not None
@@ -251,8 +252,8 @@ class TestEnhancedCleanData:
         assert response.missing_values_summary.before == {'numeric_col': 1, 'category_col': 1}
         assert response.missing_values_summary.after == {}  # All filled
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_auto_detect_types(self, mock_update, mock_get):
         """Test automatic type detection and conversion"""
         df = pd.DataFrame({
@@ -262,7 +263,7 @@ class TestEnhancedCleanData:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -271,14 +272,14 @@ class TestEnhancedCleanData:
             auto_detect_types=True
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         type_op = next((op for op in response.operations_log if op.operation == 'auto_detect_types'), None)
         assert type_op is not None
         assert len(response.column_changes.type_converted) >= 1
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_manual_fill_na(self, mock_update, mock_get):
         """Test manual fill_na functionality"""
         df = pd.DataFrame({
@@ -287,7 +288,7 @@ class TestEnhancedCleanData:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -296,14 +297,14 @@ class TestEnhancedCleanData:
             fill_na={'A': 0, 'B': 'unknown'}
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         fill_op = next((op for op in response.operations_log if op.operation == 'fill_na'), None)
         assert fill_op is not None
         assert fill_op.affected_count == 2
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_columns_to_drop(self, mock_update, mock_get):
         """Test dropping specific columns"""
         df = pd.DataFrame({
@@ -313,7 +314,7 @@ class TestEnhancedCleanData:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=False,
@@ -322,19 +323,19 @@ class TestEnhancedCleanData:
             columns_to_drop=['drop_me']
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         assert response.columns_before == 3
         assert response.columns_after == 2
         assert 'drop_me' in response.column_changes.dropped
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_combined_operations(self, mock_update, mock_get, sample_df):
         """Test multiple cleaning operations together"""
         mock_get.return_value = sample_df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=True,
             remove_empty_rows=True,
@@ -343,49 +344,49 @@ class TestEnhancedCleanData:
             auto_detect_types=True
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # Should have multiple operations logged
         assert len(response.operations_log) >= 2
         assert response.message != ""
         assert response.file_id == "test-123"
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
     def test_file_not_found(self, mock_get):
         """Test error handling for non-existent file"""
         mock_get.side_effect = ValueError("File not found: invalid-id")
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="invalid-id",
             normalize_columns=True
         )
         
         with pytest.raises(Exception) as excinfo:
-            enhanced_clean_data(request)
+            clean_data(request)
         assert "404" in str(excinfo.value.status_code) or "not found" in str(excinfo.value.detail).lower()
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_empty_dataframe(self, mock_update, mock_get):
         """Test handling of empty dataframe"""
         df = pd.DataFrame()
         mock_get.return_value = df
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=True,
             remove_empty_rows=True
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         assert response.rows_before == 0
         assert response.rows_after == 0
         assert response.columns_before == 0
         assert response.columns_after == 0
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_no_operations_needed(self, mock_update, mock_get):
         """Test when no cleaning is needed"""
         df = pd.DataFrame({
@@ -394,7 +395,7 @@ class TestEnhancedCleanData:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=False,
             remove_empty_rows=True,  # No empty rows to remove
@@ -404,7 +405,7 @@ class TestEnhancedCleanData:
             auto_detect_types=False
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # No operations should be logged (data is already clean)
         assert len(response.operations_log) == 0
@@ -414,8 +415,8 @@ class TestEnhancedCleanData:
 class TestDuplicateColumnNameHandling:
     """Tests for handling duplicate column names after normalization"""
     
-    @patch('app.services.enhanced_cleaning_service.get_dataframe')
-    @patch('app.services.enhanced_cleaning_service.update_dataframe')
+    @patch('app.services.cleaning_service.get_dataframe')
+    @patch('app.services.cleaning_service.update_dataframe')
     def test_duplicate_names_after_normalization(self, mock_update, mock_get):
         """Test that duplicate column names are handled correctly"""
         df = pd.DataFrame({
@@ -425,7 +426,7 @@ class TestDuplicateColumnNameHandling:
         })
         mock_get.return_value = df.copy()
         
-        request = EnhancedCleaningRequest(
+        request = DataCleaningRequest(
             file_id="test-123",
             normalize_columns=True,
             remove_empty_rows=False,
@@ -433,7 +434,7 @@ class TestDuplicateColumnNameHandling:
             drop_duplicates=False
         )
         
-        response = enhanced_clean_data(request)
+        response = clean_data(request)
         
         # Get the actual column names from the updated dataframe
         call_args = mock_update.call_args
