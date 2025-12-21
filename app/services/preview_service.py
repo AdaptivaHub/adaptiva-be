@@ -290,7 +290,50 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
     Returns:
         PreviewResponse with formatted data
     """
-    # Get stored file content
+    from app.utils import get_dataframe
+    
+    # Try to get the cleaned dataframe first (if cleaning was performed)
+    try:
+        df = get_dataframe(file_id)
+        # If we have a cleaned dataframe, use it directly
+        preview_df = df.head(max_rows)
+        total_rows = len(df)
+        
+        headers = df.columns.tolist()
+        data = []
+        
+        for _, row in preview_df.iterrows():
+            row_data: Dict[str, str] = {}
+            for header in headers:
+                value = row[header]
+                if pd.isna(value):
+                    row_data[header] = ""
+                elif isinstance(value, float):
+                    # Check if it's effectively an integer
+                    if value == int(value):
+                        row_data[header] = str(int(value))
+                    else:
+                        row_data[header] = f"{value:g}"
+                else:
+                    row_data[header] = str(value)
+            data.append(row_data)
+        
+        return PreviewResponse(
+            file_id=file_id,
+            headers=headers,
+            data=data,
+            total_rows=total_rows,
+            preview_rows=len(data),
+            formatted=False,  # From cleaned dataframe, not original file
+            message="Preview generated successfully from cleaned data",
+            sheet_name=None,
+            available_sheets=None
+        )
+    except ValueError:
+        # Dataframe not found, fall back to original file content
+        pass
+    
+    # Get stored file content (original file for formatted preview)
     file_data = get_file_content(file_id)
     
     if file_data is None:
