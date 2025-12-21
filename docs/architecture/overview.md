@@ -13,8 +13,12 @@ Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, a
 ┌─────────────────────────────────────────────────────────────────┐
 │                     FastAPI Application                         │
 │  ┌─────────────────────────────────────────────────────────────┐│
+│  │                   Auth Middleware (JWT)                     ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                │                                 │
+│  ┌─────────────────────────────────────────────────────────────┐│
 │  │                      Routers Layer                          ││
-│  │  upload │ charts │ cleaning │ insights │ ml │ export │preview│
+│  │ auth│upload│charts│cleaning│insights│ml│export│preview      ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                │                                 │
 │  ┌─────────────────────────────────────────────────────────────┐│
@@ -24,16 +28,16 @@ Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, a
 │                                │                                 │
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │                      Utils Layer                            ││
-│  │  Storage, file handling, common utilities                   ││
+│  │  Storage, file handling, common utilities, dependencies     ││
 │  └─────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
                                 │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-            ┌──────────────┐       ┌──────────────┐
-            │  In-Memory   │       │   OpenAI     │
-            │   Storage    │       │     API      │
-            └──────────────┘       └──────────────┘
+            ┌───────────────────┼───────────────────┐
+            ▼                   ▼                   ▼
+    ┌──────────────┐   ┌──────────────┐    ┌──────────────┐
+    │  In-Memory   │   │   OpenAI     │    │   SQLite/    │
+    │   Storage    │   │     API      │    │  PostgreSQL  │
+    └──────────────┘   └──────────────┘    └──────────────┘
 ```
 
 ## Directory Structure
@@ -42,10 +46,14 @@ Adaptiva Backend is a FastAPI-based REST API for data analysis, visualization, a
 app/
 ├── __init__.py
 ├── main.py              # FastAPI app initialization, middleware, routers
+├── config.py            # App configuration (JWT secrets, DB URL)
+├── database.py          # Database connection and session management
 ├── models/
-│   └── __init__.py      # Pydantic models for request/response validation
+│   ├── __init__.py      # Pydantic models for request/response validation
+│   └── user.py          # User database model
 ├── routers/
 │   ├── __init__.py      # Router exports
+│   ├── auth.py          # Authentication endpoints (login, register, refresh)
 │   ├── upload.py        # File upload endpoints
 │   ├── charts.py        # Chart generation endpoints
 │   ├── cleaning.py      # Data cleaning endpoints
@@ -55,6 +63,7 @@ app/
 │   └── preview.py       # Formatted data preview endpoints
 ├── services/
 │   ├── __init__.py      # Service exports
+│   ├── auth_service.py  # JWT creation, password hashing
 │   ├── upload_service.py
 │   ├── chart_service.py
 │   ├── ai_chart_service.py
@@ -65,7 +74,8 @@ app/
 │   └── preview_service.py
 └── utils/
     ├── __init__.py
-    └── storage.py       # In-memory data storage
+    ├── storage.py       # In-memory data storage
+    └── deps.py          # Dependency injection (get_current_user)
 ```
 
 ## Layer Responsibilities
@@ -94,6 +104,59 @@ app/
 - Request/Response schemas
 - Enum definitions
 - Type safety
+- SQLAlchemy models for database entities
+
+## Authentication Flow
+
+### JWT Authentication Architecture
+```
+┌─────────────┐     POST /api/auth/login      ┌─────────────┐
+│   Client    │ ─────────────────────────────▶│  Auth Router│
+│  (React)    │                               │             │
+└─────────────┘                               └──────┬──────┘
+      │                                              │
+      │                                              ▼
+      │                                       ┌─────────────┐
+      │                                       │Auth Service │
+      │                                       │(validate pw)│
+      │                                       └──────┬──────┘
+      │                                              │
+      │         ◀──── JWT Tokens ────────────────────┘
+      │         (access_token + refresh_token)
+      │
+      │         GET /api/charts (protected)
+      │         Authorization: Bearer <token>
+      ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Request   │────▶│  JWT Auth   │────▶│   Router    │
+│             │     │ Dependency  │     │  (charts)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                          │
+                          ▼
+                    Validate Token
+                    Extract User
+                    Inject into Request
+```
+
+### Token Lifecycle
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     Token Lifecycle                          │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Login ──▶ Access Token (15-30 min) ──▶ Expires             │
+│       └──▶ Refresh Token (7 days)                           │
+│                    │                                         │
+│                    ▼                                         │
+│            POST /api/auth/refresh                           │
+│                    │                                         │
+│                    ▼                                         │
+│            New Access Token ──▶ Continue using API          │
+│                                                              │
+│  Logout ──▶ Tokens invalidated (optional blacklist)         │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Data Flow
 

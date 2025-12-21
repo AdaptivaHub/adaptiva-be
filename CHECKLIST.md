@@ -101,6 +101,7 @@
 - [x] Chart generation requirements
 - [x] Data preview requirements
 - [x] Data cleaning requirements
+- [x] Authentication requirements (`docs/requirements/authentication.md`)
 - [ ] Insights requirements (High Priority)
 - [ ] ML requirements
 - [ ] Export requirements
@@ -115,3 +116,27 @@
 - [ ] Rate limiting for AI calls
 - [ ] Response caching
 - [ ] Authentication and security
+
+### Authentication & Authorization
+- [ ] User registration (AC-1 to AC-4)
+- [ ] User login with JWT (AC-5 to AC-7)
+- [ ] Token refresh mechanism (AC-8, AC-9)
+- [ ] Logout functionality (AC-10)
+- [ ] Protected route middleware (AC-11 to AC-14)
+- [ ] Current user endpoint
+- [ ] Password hashing with bcrypt
+- [ ] SQLite database setup (dev)
+- [x] Requirements document (`docs/requirements/authentication.md`)
+
+### Anonymous Rate Limiting
+- [ ] IP-based rate limiting (AC-15)
+- [ ] Anonymous session token generation
+- [ ] Combined IP + session tracking (AC-19)
+- [ ] Rate limit exceeded response - 429 (AC-16)
+- [ ] Authenticated user bypass (AC-17)
+- [ ] 24-hour rolling window reset (AC-18)
+- [ ] Rate limit headers (X-RateLimit-*)
+- [ ] Global daily limit safeguard (1000 queries)
+- [ ] Burst limit protection (10/minute per IP)
+- [ ] Frontend session storage integration
+- [ ] Rate limit UI warnings
