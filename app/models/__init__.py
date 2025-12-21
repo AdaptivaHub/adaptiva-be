@@ -40,6 +40,7 @@ class FileUploadResponse(BaseModel):
 class DataCleaningRequest(BaseModel):
     """Request for data cleaning"""
     file_id: str
+    sheet_name: Optional[str] = Field(default=None, description="Sheet name for Excel files (uses composite key file_id:sheet_name)")
     drop_duplicates: bool = Field(default=True, description="Remove duplicate rows")
     drop_na: bool = Field(default=False, description="Remove rows with missing values")
     fill_na: Optional[Dict[str, Any]] = Field(default=None, description="Fill missing values with specified values")
@@ -49,6 +50,7 @@ class DataCleaningRequest(BaseModel):
 class DataCleaningResponse(BaseModel):
     """Response for data cleaning"""
     file_id: str
+    sheet_name: Optional[str] = Field(default=None, description="Sheet name that was cleaned (Excel only)")
     rows_before: int
     rows_after: int
     columns_before: int
@@ -79,6 +81,7 @@ class MissingValuesSummary(BaseModel):
 class EnhancedCleaningRequest(BaseModel):
     """Request for enhanced data cleaning with Excel Copilot-like features"""
     file_id: str = Field(description="UUID of uploaded file")
+    sheet_name: Optional[str] = Field(default=None, description="Sheet name for Excel files (uses composite key file_id:sheet_name)")
     normalize_columns: bool = Field(default=False, description="Normalize column names (lowercase, strip, replace spaces)")
     remove_empty_rows: bool = Field(default=True, description="Remove rows where all values are null")
     remove_empty_columns: bool = Field(default=True, description="Remove columns where all values are null")
@@ -93,6 +96,7 @@ class EnhancedCleaningRequest(BaseModel):
 class EnhancedCleaningResponse(BaseModel):
     """Response for enhanced data cleaning with detailed log"""
     file_id: str = Field(description="File identifier")
+    sheet_name: Optional[str] = Field(default=None, description="Sheet name that was cleaned (Excel only)")
     rows_before: int = Field(description="Original row count")
     rows_after: int = Field(description="Final row count")
     columns_before: int = Field(description="Original column count")
@@ -166,6 +170,10 @@ class ErrorResponse(BaseModel):
 class AIChartGenerationRequest(BaseModel):
     """Request for AI-powered chart generation"""
     file_id: str
+    sheet_name: Optional[str] = Field(
+        default=None,
+        description="Sheet name for Excel files (uses composite key file_id:sheet_name)"
+    )
     user_instructions: Optional[str] = Field(
         default=None, 
         description="User's instructions for what kind of chart to create"

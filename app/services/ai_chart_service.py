@@ -281,15 +281,19 @@ def generate_ai_chart(request: AIChartGenerationRequest) -> AIChartGenerationRes
     """
     Generate a chart using AI to write the visualization code.
     
+    Uses composite key (file_id:sheet_name) for Excel files to ensure
+    the correct sheet is used for chart generation.
+    
     Args:
-        request: AIChartGenerationRequest with file_id, optional user_instructions, and optional base_prompt
+        request: AIChartGenerationRequest with file_id, optional sheet_name, 
+                 optional user_instructions, and optional base_prompt
         
     Returns:
         AIChartGenerationResponse with chart JSON, generated code, and explanation
     """
     try:
-        # Get the dataframe
-        df = get_dataframe(request.file_id)
+        # Get the dataframe using composite key
+        df = get_dataframe(request.file_id, request.sheet_name)
         
         # Clean column names (remove newlines, extra whitespace, etc.)
         df = _clean_column_names(df)

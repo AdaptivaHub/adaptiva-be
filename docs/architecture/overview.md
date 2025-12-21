@@ -159,16 +159,62 @@ POST /api/charts/ai
 
 ## Storage Architecture
 
-### Current Implementation (In-Memory)
+### Current Implementation (In-Memory with Composite Keys)
+
+The storage system uses composite keys to support multiple Excel sheets per file:
+
 ```python
 # app/utils/storage.py
-dataframes: Dict[str, pd.DataFrame] = {}      # file_id -> DataFrame
+
+# Key format: "file_id" for CSV or "file_id:sheet_name" for Excel sheets
+dataframes: Dict[str, pd.DataFrame] = {}
+
+# Original file content for formatted preview
 file_contents: Dict[str, Tuple[bytes, str]] = {}  # file_id -> (content, filename)
+
+# Helper functions for composite key management
+def get_sheet_key(file_id: str, sheet_name: Optional[str] = None) -> str:
+    """Generate composite key: 'file_id' or 'file_id:sheet_name'"""
+    if sheet_name:
+        return f"{file_id}:{sheet_name}"
+    return file_id
+
+def store_dataframe(file_id: str, df: pd.DataFrame, sheet_name: Optional[str] = None):
+    """Store dataframe with optional sheet name"""
+    key = get_sheet_key(file_id, sheet_name)
+    dataframes[key] = df.copy()
+
+def get_dataframe(file_id: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
+    """Retrieve dataframe using composite key"""
+    key = get_sheet_key(file_id, sheet_name)
+    return dataframes[key].copy()
+
+def has_dataframe(file_id: str, sheet_name: Optional[str] = None) -> bool:
+    """Check if dataframe exists for file_id + sheet_name"""
+    key = get_sheet_key(file_id, sheet_name)
+    return key in dataframes
+```
+
+### Excel Multi-Sheet Support
+
+When working with Excel files containing multiple sheets:
+
+1. **Upload**: First sheet is loaded and stored with `file_id:sheet_name` key
+2. **Sheet Switching**: Frontend requests preview with specific `sheet_name`
+3. **Cleaning**: Each sheet is cleaned and stored independently
+4. **Charts**: Generated from the currently active sheet
+
+```
+Excel File: report.xlsx
+├── Sheet1 (Sales)     → stored as "abc123:Sales"
+├── Sheet2 (Inventory) → stored as "abc123:Inventory"  
+└── Sheet3 (Summary)   → stored as "abc123:Summary"
 ```
 
 **Pros:**
 - Fast access
 - Simple implementation
+- Independent sheet operations
 - No external dependencies
 
 **Cons:**

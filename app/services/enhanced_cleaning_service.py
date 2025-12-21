@@ -88,7 +88,10 @@ def _get_missing_values_summary(df: pd.DataFrame) -> Dict[str, int]:
 
 def enhanced_clean_data(request: EnhancedCleaningRequest) -> EnhancedCleaningResponse:
     """
-    Perform enhanced data cleaning with Excel Copilot-like features
+    Perform enhanced data cleaning with Excel Copilot-like features.
+    
+    Uses composite key (file_id:sheet_name) for Excel files to ensure
+    the correct sheet is cleaned.
     
     Args:
         request: EnhancedCleaningRequest with cleaning parameters
@@ -97,8 +100,8 @@ def enhanced_clean_data(request: EnhancedCleaningRequest) -> EnhancedCleaningRes
         EnhancedCleaningResponse with detailed cleaning results and log
     """
     try:
-        # Get the dataframe
-        df = get_dataframe(request.file_id)
+        # Get the dataframe using composite key
+        df = get_dataframe(request.file_id, request.sheet_name)
         
         # Store original dimensions
         rows_before = len(df)
@@ -287,12 +290,11 @@ def enhanced_clean_data(request: EnhancedCleaningRequest) -> EnhancedCleaningRes
         # Store updated dimensions
         rows_after = len(df)
         columns_after = len(df.columns)
-        
-        # Get missing values after cleaning
+          # Get missing values after cleaning
         missing_after = _get_missing_values_summary(df)
         
-        # Update the stored dataframe
-        update_dataframe(request.file_id, df)
+        # Update the stored dataframe using composite key
+        update_dataframe(request.file_id, df, request.sheet_name)
         
         # Build summary message
         operations_count = len(operations_log)
@@ -309,6 +311,7 @@ def enhanced_clean_data(request: EnhancedCleaningRequest) -> EnhancedCleaningRes
         
         return EnhancedCleaningResponse(
             file_id=request.file_id,
+            sheet_name=request.sheet_name,
             rows_before=rows_before,
             rows_after=rows_after,
             columns_before=columns_before,

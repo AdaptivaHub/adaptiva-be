@@ -282,6 +282,9 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
     """
     Get formatted preview for an uploaded file.
     
+    Uses composite key (file_id:sheet_name) to retrieve the correct dataframe
+    for the requested sheet.
+    
     Args:
         file_id: The ID of the uploaded file
         max_rows: Maximum number of rows to return
@@ -290,50 +293,9 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
     Returns:
         PreviewResponse with formatted data
     """
-    from app.utils import get_dataframe
+    from app.utils import get_dataframe, has_dataframe
     
-    # Try to get the cleaned dataframe first (if cleaning was performed)
-    try:
-        df = get_dataframe(file_id)
-        # If we have a cleaned dataframe, use it directly
-        preview_df = df.head(max_rows)
-        total_rows = len(df)
-        
-        headers = df.columns.tolist()
-        data = []
-        
-        for _, row in preview_df.iterrows():
-            row_data: Dict[str, str] = {}
-            for header in headers:
-                value = row[header]
-                if pd.isna(value):
-                    row_data[header] = ""
-                elif isinstance(value, float):
-                    # Check if it's effectively an integer
-                    if value == int(value):
-                        row_data[header] = str(int(value))
-                    else:
-                        row_data[header] = f"{value:g}"
-                else:
-                    row_data[header] = str(value)
-            data.append(row_data)
-        
-        return PreviewResponse(
-            file_id=file_id,
-            headers=headers,
-            data=data,
-            total_rows=total_rows,
-            preview_rows=len(data),
-            formatted=False,  # From cleaned dataframe, not original file
-            message="Preview generated successfully from cleaned data",
-            sheet_name=None,
-            available_sheets=None
-        )
-    except ValueError:
-        # Dataframe not found, fall back to original file content
-        pass
-    
-    # Get stored file content (original file for formatted preview)
+    # Get stored file content first to check available sheets
     file_data = get_file_content(file_id)
     
     if file_data is None:
@@ -343,7 +305,57 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
         )
     
     content, filename = file_data
+    filename_lower = filename.lower()
+    is_excel = filename_lower.endswith('.xlsx') or filename_lower.endswith('.xls')
     
+    # Get available sheets for Excel files
+    available_sheets = None
+    if is_excel:
+        available_sheets = get_excel_sheet_names(content)
+        # Default to first sheet if not specified
+        if sheet_name is None and available_sheets:
+            sheet_name = available_sheets[0]
+    
+    # Try to get the cleaned/stored dataframe for this specific sheet
+    if has_dataframe(file_id, sheet_name):
+        try:
+            df = get_dataframe(file_id, sheet_name)
+            preview_df = df.head(max_rows)
+            total_rows = len(df)
+            
+            headers = df.columns.tolist()
+            data = []
+            
+            for _, row in preview_df.iterrows():
+                row_data: Dict[str, str] = {}
+                for header in headers:
+                    value = row[header]
+                    if pd.isna(value):
+                        row_data[header] = ""
+                    elif isinstance(value, float):
+                        if value == int(value):
+                            row_data[header] = str(int(value))
+                        else:
+                            row_data[header] = f"{value:g}"
+                    else:
+                        row_data[header] = str(value)
+                data.append(row_data)
+            
+            return PreviewResponse(
+                file_id=file_id,
+                headers=headers,
+                data=data,
+                total_rows=total_rows,
+                preview_rows=len(data),
+                formatted=False,
+                message="Preview from stored data",
+                sheet_name=sheet_name,
+                available_sheets=available_sheets
+            )
+        except ValueError:
+            pass
+    
+    # Fall back to reading from original file content
     try:
         preview_data = get_preview_data(content, filename, max_rows, sheet_name)
         
@@ -354,12 +366,11 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
             total_rows=preview_data["total_rows"],
             preview_rows=len(preview_data["data"]),
             formatted=preview_data["formatted"],
-            message="Preview generated successfully",
+            message="Preview from original file",
             sheet_name=preview_data.get("sheet_name"),
             available_sheets=preview_data.get("available_sheets")
         )
     except ValueError as e:
-        # Handle sheet not found errors
         raise HTTPException(
             status_code=400,
             detail=str(e)

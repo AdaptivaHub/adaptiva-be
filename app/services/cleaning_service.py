@@ -7,7 +7,10 @@ from app.models import DataCleaningRequest, DataCleaningResponse
 
 def clean_data(request: DataCleaningRequest) -> DataCleaningResponse:
     """
-    Clean the dataset based on specified operations
+    Clean the dataset based on specified operations.
+    
+    Uses composite key (file_id:sheet_name) for Excel files to ensure
+    the correct sheet is cleaned.
     
     Args:
         request: DataCleaningRequest with cleaning parameters
@@ -16,8 +19,8 @@ def clean_data(request: DataCleaningRequest) -> DataCleaningResponse:
         DataCleaningResponse with cleaning results
     """
     try:
-        # Get the dataframe
-        df = get_dataframe(request.file_id)
+        # Get the dataframe using composite key
+        df = get_dataframe(request.file_id, request.sheet_name)
         
         # Store original dimensions
         rows_before = len(df)
@@ -45,12 +48,13 @@ def clean_data(request: DataCleaningRequest) -> DataCleaningResponse:
         rows_after = len(df)
         columns_after = len(df.columns)
         
-        # Update the stored dataframe
-        update_dataframe(request.file_id, df)
+        # Update the stored dataframe using composite key
+        update_dataframe(request.file_id, df, request.sheet_name)
         
         # Prepare response
         response = DataCleaningResponse(
             file_id=request.file_id,
+            sheet_name=request.sheet_name,
             rows_before=rows_before,
             rows_after=rows_after,
             columns_before=columns_before,

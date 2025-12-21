@@ -170,6 +170,7 @@ Use AI (OpenAI) to analyze data and automatically generate appropriate visualiza
 ```json
 {
   "file_id": "uuid-string",
+  "sheet_name": "sheet_name (optional - for Excel files with multiple sheets)",
   "user_instructions": "Show me a chart of sales by region (optional)",
   "base_prompt": "Custom system prompt (optional)"
 }

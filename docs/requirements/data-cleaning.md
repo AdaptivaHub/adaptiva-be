@@ -58,6 +58,7 @@ So that **I can quickly prepare messy datasets for analysis without manual clean
 ```json
 {
   "file_id": "string - required - UUID of uploaded file",
+  "sheet_name": "string - optional - Sheet name for Excel files (uses composite key file_id:sheet_name)",
   "normalize_columns": "boolean - optional - default: false - Normalize column names",
   "remove_empty_rows": "boolean - optional - default: true - Remove rows with all null values",
   "remove_empty_columns": "boolean - optional - default: true - Remove columns with all null values",
@@ -74,6 +75,7 @@ So that **I can quickly prepare messy datasets for analysis without manual clean
 ```json
 {
   "file_id": "string - File identifier",
+  "sheet_name": "string - optional - Sheet name that was cleaned (Excel only)",
   "rows_before": "integer - Original row count",
   "rows_after": "integer - Final row count",
   "columns_before": "integer - Original column count",
