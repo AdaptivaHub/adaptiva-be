@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter
 from app.models import (
     ChartGenerationRequest, 
     ChartGenerationResponse, 
@@ -7,7 +7,6 @@ from app.models import (
     ErrorResponse
 )
 from app.services import generate_chart, generate_ai_chart
-from app.utils import require_rate_limit, record_usage
 
 router = APIRouter(prefix="/charts", tags=["Chart Generation"])
 
@@ -38,15 +37,11 @@ def create_chart(request: ChartGenerationRequest):
 @router.post(
     "/ai",
     response_model=AIChartGenerationResponse,
-    responses={400: {"model": ErrorResponse}, 404: {"model": ErrorResponse}, 429: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    responses={400: {"model": ErrorResponse}, 404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
     summary="Generate chart using AI",
     description="Use AI to analyze your data and generate the most appropriate visualization automatically"
 )
-def create_ai_chart(
-    request: AIChartGenerationRequest,
-    req: Request,
-    _: None = Depends(require_rate_limit(estimated_cost_cents=0.5))
-):
+def create_ai_chart(request: AIChartGenerationRequest):
     """
     Generate a chart using AI to write the visualization code.
     
@@ -61,10 +56,5 @@ def create_ai_chart(
     - **chart_json**: Plotly JSON that can be rendered in the frontend
     - **generated_code**: The Python code that was generated and executed
     - **explanation**: Brief explanation of what the chart shows
-    
-    Rate limited to ~$0.20/day per IP.
     """
-    result = generate_ai_chart(request)
-    # Record approximate usage (estimate ~500 input, ~300 output tokens)
-    record_usage(req, input_tokens=500, output_tokens=300, model="gpt-4o-mini")
-    return result
+    return generate_ai_chart(request)

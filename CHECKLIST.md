@@ -26,10 +26,17 @@
 - [ ] Drop columns
 
 ### Data Insights
+<<<<<<< HEAD
 - [ ] Summary statistics
 - [ ] Missing values analysis
 - [ ] Data types info
 - [ ] Duplicate detection
+=======
+- [] Summary statistics
+- [] Missing values analysis
+- [] Data types info
+- [] Duplicate detection
+>>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 
 ### Chart Generation
 - [x] Bar chart (AC-1)
@@ -49,6 +56,7 @@
 - [x] Explanation return (AC-13)
 - [x] Sandboxed execution (AC-14, AC-15)
 
+<<<<<<< HEAD
 ### Machine Learning (Megan)
 - [ ] Linear regression model
 - [ ] Decision tree model
@@ -58,39 +66,18 @@
 ### Export
 - [ ] PDF export
 - [ ] PowerPoint export (?)
+=======
+### Machine Learning
+- [] Linear regression model
+- [] Decision tree model
+- [] Model metrics (MSE, RMSE, MAE, R²)
+- [] Sample predictions
+
+### Export
+- [] PDF export
+- [] PowerPoint export
+>>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 - [ ] Include charts in export
-
----
-
-## Phase Two Features (AI Agents)
-
-### Forecasting Agent
-- [x] Prophet time-series forecasting
-- [x] Auto-detect forecastable columns
-- [x] Configurable forecast periods
-- [x] Trend analysis (increasing/decreasing)
-- [x] Confidence intervals
-
-### Marketing Strategy Agent
-- [x] AI-powered campaign generation
-- [x] Business context input
-- [x] Key insights extraction
-- [x] Multiple campaign suggestions
-- [x] Tactics and timing recommendations
-
-### Content Generation Agent
-- [x] Ad copy generation (headlines, captions)
-- [x] Hashtag generation
-- [x] Call-to-action suggestions
-- [x] Image generation (Pollinations AI)
-- [x] Multi-platform support
-
-### Agent Orchestrator
-- [x] Full pipeline endpoint
-- [x] Sequential agent execution
-- [x] Results aggregation
-- [ ] Session persistence (Low priority)
-- [ ] WebSocket for progress updates (Low priority)
 
 ---
 
@@ -104,7 +91,11 @@
 - [ ] ML service tests
 - [ ] Export service tests
 - [ ] Preview service tests
+<<<<<<< HEAD
 - [ ] AI chart service tests
+=======
+- [] AI chart service tests
+>>>>>>> parent of 45ba51e (feat: Implement AI-powered content generation and marketing strategy services)
 
 ### Integration Tests
 - [x] Upload endpoint tests
@@ -114,7 +105,6 @@
 - [ ] Insights endpoint tests
 - [ ] ML endpoint tests
 - [ ] Export endpoint tests
-- [ ] Agents endpoint tests
 
 ---
 
@@ -127,19 +117,14 @@
 - [ ] Insights requirements (High Priority)
 - [ ] ML requirements
 - [ ] Export requirements
-- [ ] Agents requirements
 - [x] Architecture overview
 - [x] API specs (OpenAPI)
-- [x] Project comparison
 
 ---
 
 ## Production Readiness
 
 - [ ] Move to Redis/PostgreSQL storage
-- [ ] S3 file storage
-- [ ] API versioning
 - [ ] Rate limiting for AI calls
 - [ ] Response caching
-- [ ] CORS configuration for production
-- [ ] Environment-based config
+- [ ] Authentication and security
