@@ -217,3 +217,65 @@ class PreviewResponse(BaseModel):
     message: str
     sheet_name: Optional[str] = Field(default=None, description="Sheet being previewed (Excel only)")
     available_sheets: Optional[List[str]] = Field(default=None, description="Available sheets (Excel only)")
+
+
+# ============================================================================
+# Authentication Models
+# ============================================================================
+
+class UserCreate(BaseModel):
+    """Request for user registration"""
+    email: str = Field(description="User email address")
+    password: str = Field(min_length=8, description="Password (minimum 8 characters)")
+    full_name: Optional[str] = Field(default=None, description="User's full name")
+
+
+class UserLogin(BaseModel):
+    """Request for user login"""
+    email: str = Field(description="User email address")
+    password: str = Field(description="User password")
+
+
+class UserResponse(BaseModel):
+    """User information response (without password)"""
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    created_at: str
+    
+    class Config:
+        from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    """Response containing JWT tokens"""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class AuthResponse(BaseModel):
+    """Combined response for login/register with user and tokens"""
+    user: UserResponse
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    """Request to refresh access token"""
+    refresh_token: str = Field(description="Valid refresh token")
+
+
+class MessageResponse(BaseModel):
+    """Simple message response"""
+    message: str
+
+
+class RateLimitExceededResponse(BaseModel):
+    """Response when anonymous rate limit is exceeded"""
+    detail: str = "Daily AI query limit reached"
+    queries_used: int
+    queries_limit: int
+    reset_at: str
+    message: str = "Sign up for free to get unlimited AI queries!"

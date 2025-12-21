@@ -6,6 +6,8 @@ from .ai_chart_service import generate_ai_chart
 from .ml_service import train_ml_model
 from .export_service import export_data, export_to_pdf, export_to_pptx
 from .preview_service import get_formatted_preview
+from . import auth_service
+from . import rate_limit_service
 
 __all__ = [
     "process_file_upload",
@@ -17,5 +19,7 @@ __all__ = [
     "export_data",
     "export_to_pdf",
     "export_to_pptx",
-    "get_formatted_preview"
+    "get_formatted_preview",
+    "auth_service",
+    "rate_limit_service"
 ]
