@@ -19,6 +19,10 @@ from .timeout import (
     ChartTimeoutError,
     CHART_GENERATION_TIMEOUT
 )
+from .header_detection import (
+    HeaderDetector,
+    HeaderDetectionResult
+)
 
 __all__ = [
     "generate_file_id",
@@ -37,5 +41,7 @@ __all__ = [
     "UPLOAD_DIR",
     "with_timeout",
     "ChartTimeoutError",
-    "CHART_GENERATION_TIMEOUT"
+    "CHART_GENERATION_TIMEOUT",
+    "HeaderDetector",
+    "HeaderDetectionResult"
 ]

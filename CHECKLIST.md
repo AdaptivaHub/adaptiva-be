@@ -77,6 +77,8 @@
 - [x] Upload service tests
 - [x] Chart service tests
 - [x] Enhanced cleaning service tests
+- [x] Header detection tests (35 tests)
+- [x] Authentication tests
 - [ ] Cleaning service tests
 - [ ] Insights service tests
 - [ ] ML service tests
@@ -101,6 +103,7 @@
 - [x] Chart generation requirements
 - [x] Data preview requirements
 - [x] Data cleaning requirements
+- [x] Header detection requirements (`docs/requirements/header-detection.md`)
 - [x] Authentication requirements (`docs/requirements/authentication.md`)
 - [ ] Insights requirements (High Priority)
 - [ ] ML requirements
@@ -113,9 +116,9 @@
 ## Production Readiness
 
 - [ ] Move to Redis/PostgreSQL storage
-- [ ] Rate limiting for AI calls
+- [X] Rate limiting for AI calls
 - [ ] Response caching
-- [ ] Authentication and security
+- [X] Authentication and security
 
 ### Authentication & Authorization
 - [X] User registration (AC-1 to AC-4)
@@ -140,3 +143,14 @@
 - [X] Burst limit protection (10/minute per IP)
 - [X] Frontend session storage integration
 - [X] Rate limit UI warnings
+
+### Automatic Header Detection
+- [X] Multi-factor header row detection (AC-1 to AC-7)
+- [X] Confidence scoring (AC-8 to AC-10)
+- [X] Automatic header application (AC-11 to AC-13)
+- [X] Multi-sheet independent detection (AC-14 to AC-16)
+- [X] CSV file header detection
+- [X] Excel file header detection (all sheets)
+- [X] Header detection utility (`app/utils/header_detection.py`)
+- [X] Unit tests (35 tests passing)
+- [X] Requirements document (`docs/requirements/header-detection.md`)

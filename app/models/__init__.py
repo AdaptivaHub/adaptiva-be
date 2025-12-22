@@ -35,6 +35,8 @@ class FileUploadResponse(BaseModel):
     message: str
     sheets: Optional[List[str]] = Field(default=None, description="List of sheet names (Excel only)")
     active_sheet: Optional[str] = Field(default=None, description="Sheet used for metadata (Excel only)")
+    header_row: Optional[int] = Field(default=None, description="Detected header row index (0-based)")
+    header_confidence: Optional[float] = Field(default=None, description="Confidence score for header detection (0.0-1.0)")
 
 
 class DataCleaningRequest(BaseModel):
