@@ -49,6 +49,9 @@ uploads/*.xls
 # Keep uploads directory
 !uploads/.gitkeep
 
+# Database
+adaptiva.db
+
 # Logs
 *.log
 

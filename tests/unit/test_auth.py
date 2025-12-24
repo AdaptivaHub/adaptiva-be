@@ -432,18 +432,25 @@ class TestAnonymousRateLimiting:
         Then: They are limited to 3 requests per 24-hour rolling window
         """
         # We'll mock the AI chart generation to isolate rate limiting logic
-        with patch('app.routers.charts.generate_ai_chart') as mock_generate:
-            mock_generate.return_value = {
-                "chart_json": {},
-                "generated_code": "# code",
-                "explanation": "Test chart",
-                "message": "Chart generated successfully"
-            }
+        with patch('app.routers.charts.generate_chart_suggestion') as mock_generate:
+            from app.models.chart_spec import AISuggestResponse, ChartSpec, AxisConfig
+            mock_spec = ChartSpec(
+                file_id="test-file-id",
+                chart_type="bar",
+                x_axis=AxisConfig(column="category")
+            )
+            mock_generate.return_value = AISuggestResponse(
+                suggested_spec=mock_spec,
+                explanation="Test chart",
+                confidence=0.8,
+                alternatives=[],
+                usage={"prompt_tokens": 100, "completion_tokens": 50}
+            )
             
             # First 3 requests should succeed
             for i in range(3):
                 response = client.post(
-                    "/api/charts/ai",
+                    "/api/charts/suggest",
                     json={"file_id": "test-file-id"}
                 )
                 # May get 404 for file not found, but not 429 yet
@@ -467,16 +474,23 @@ class TestAnonymousRateLimiting:
         
         # Mock the request to use our test IP
         with patch('app.routers.charts.get_client_ip', return_value=test_ip):
-            with patch('app.routers.charts.generate_ai_chart') as mock_generate:
-                mock_generate.return_value = {
-                    "chart_json": {},
-                    "generated_code": "# code",
-                    "explanation": "Test",
-                    "message": "Chart generated"
-                }
+            with patch('app.routers.charts.generate_chart_suggestion') as mock_generate:
+                from app.models.chart_spec import AISuggestResponse, ChartSpec, AxisConfig
+                mock_spec = ChartSpec(
+                    file_id="test-file",
+                    chart_type="bar",
+                    x_axis=AxisConfig(column="category")
+                )
+                mock_generate.return_value = AISuggestResponse(
+                    suggested_spec=mock_spec,
+                    explanation="Test",
+                    confidence=0.8,
+                    alternatives=[],
+                    usage={}
+                )
                 
                 response = client.post(
-                    "/api/charts/ai",
+                    "/api/charts/suggest",
                     json={"file_id": "test-file"},
                     headers={"X-Anonymous-Session": session_token}
                 )
@@ -507,17 +521,24 @@ class TestAnonymousRateLimiting:
             rate_limit_service.increment_usage(test_ip, None)
         
         with patch('app.routers.charts.get_client_ip', return_value=test_ip):
-            with patch('app.routers.charts.generate_ai_chart') as mock_generate:
-                mock_generate.return_value = {
-                    "chart_json": {},
-                    "generated_code": "# code",
-                    "explanation": "Test",
-                    "message": "Chart generated"
-                }
+            with patch('app.routers.charts.generate_chart_suggestion') as mock_generate:
+                from app.models.chart_spec import AISuggestResponse, ChartSpec, AxisConfig
+                mock_spec = ChartSpec(
+                    file_id="test-file",
+                    chart_type="bar",
+                    x_axis=AxisConfig(column="category")
+                )
+                mock_generate.return_value = AISuggestResponse(
+                    suggested_spec=mock_spec,
+                    explanation="Test",
+                    confidence=0.8,
+                    alternatives=[],
+                    usage={}
+                )
                 
                 headers = {"Authorization": f"Bearer {registered_user['access_token']}"}
                 response = client.post(
-                    "/api/charts/ai",
+                    "/api/charts/suggest",
                     json={"file_id": "test-file"},
                     headers=headers
                 )
@@ -585,16 +606,23 @@ class TestAnonymousRateLimiting:
 
     def test_rate_limit_headers_included(self, client):
         """Test that rate limit headers are included in responses."""
-        with patch('app.routers.charts.generate_ai_chart') as mock_generate:
-            mock_generate.return_value = {
-                "chart_json": {},
-                "generated_code": "# code",
-                "explanation": "Test",
-                "message": "Chart generated"
-            }
+        with patch('app.routers.charts.generate_chart_suggestion') as mock_generate:
+            from app.models.chart_spec import AISuggestResponse, ChartSpec, AxisConfig
+            mock_spec = ChartSpec(
+                file_id="test-file",
+                chart_type="bar",
+                x_axis=AxisConfig(column="category")
+            )
+            mock_generate.return_value = AISuggestResponse(
+                suggested_spec=mock_spec,
+                explanation="Test",
+                confidence=0.8,
+                alternatives=[],
+                usage={}
+            )
             
             response = client.post(
-                "/api/charts/ai",
+                "/api/charts/suggest",
                 json={"file_id": "test-file"}
             )
             

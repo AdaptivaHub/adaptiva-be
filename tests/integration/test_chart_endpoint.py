@@ -220,17 +220,17 @@ class TestManualChartEndpoint:
         assert response.status_code == 422  # Pydantic validation error
 
 
-class TestAIChartEndpoint:
-    """Integration tests for POST /api/charts/ai."""
+class TestAISuggestEndpoint:
+    """Integration tests for POST /api/charts/suggest."""
     
     @pytest.mark.skipif(
         not pytest.importorskip("openai", reason="OpenAI not installed"),
         reason="OpenAI API key not configured"
     )
-    def test_ai_chart_success(self, client, uploaded_csv_file):
-        """TC-12: AI chart generates successfully with auto chart selection."""
+    def test_ai_suggest_success(self, client, uploaded_csv_file):
+        """TC-12: AI suggest generates successfully with auto chart selection."""
         response = client.post(
-            "/api/charts/ai",
+            "/api/charts/suggest",
             json={"file_id": uploaded_csv_file}
         )
         
@@ -240,19 +240,24 @@ class TestAIChartEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert "chart_json" in data
-        assert "generated_code" in data
+        assert "suggested_spec" in data
         assert "explanation" in data
-        assert "message" in data
+        assert "confidence" in data
+        assert "usage" in data
+        # Verify spec structure
+        spec = data["suggested_spec"]
+        assert "file_id" in spec
+        assert "chart_type" in spec
+        assert "x_axis" in spec
     
     @pytest.mark.skipif(
         not pytest.importorskip("openai", reason="OpenAI not installed"),
         reason="OpenAI API key not configured"
     )
-    def test_ai_chart_with_instructions(self, client, uploaded_csv_file):
-        """TC-13: AI chart respects user instructions."""
+    def test_ai_suggest_with_instructions(self, client, uploaded_csv_file):
+        """TC-13: AI suggest respects user instructions."""
         response = client.post(
-            "/api/charts/ai",
+            "/api/charts/suggest",
             json={
                 "file_id": uploaded_csv_file,
                 "user_instructions": "Create a bar chart showing values by category"
@@ -263,19 +268,18 @@ class TestAIChartEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert "chart_json" in data
-        assert len(data["generated_code"]) > 0
+        assert "suggested_spec" in data
         assert len(data["explanation"]) > 0
 
-    def test_ai_chart_invalid_file_id_returns_404(self, client):
-        """TC-14: Invalid file_id returns 404 or 400."""
+    def test_ai_suggest_invalid_file_id_returns_404(self, client):
+        """TC-14: Invalid file_id returns 404."""
         response = client.post(
-            "/api/charts/ai",
+            "/api/charts/suggest",
             json={"file_id": "nonexistent-file-id"}
         )
         
-        # API may return 404 (not found) or 400 (bad request) for invalid file_id
-        assert response.status_code in [400, 404]
+        # API should return 404 (not found) for invalid file_id
+        assert response.status_code == 404
 
 
 class TestChartDataIntegrity:
