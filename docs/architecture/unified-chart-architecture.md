@@ -399,7 +399,7 @@ app/
 - [x] Create `src/types/chartSpec.ts` with TypeScript types
 - [x] Rewrite `src/services/chartService.ts` with suggest/render/validate
 - [x] Rewrite `src/hooks/useChart.ts` with new unified API
-- [x] Update `src/components/ChartEditor.tsx` and `ChartView.tsx`
+- [x] Update `src/features/ChartEditor.tsx` and `ChartView.tsx`
 - [x] Update `src/App.tsx` to use new useChart hook
 - [x] Update `src/app/routes/ChartsPage.tsx` to use new API
 - [x] Frontend compiles successfully
