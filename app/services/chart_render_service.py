@@ -68,24 +68,33 @@ def _apply_single_filter(df: pd.DataFrame, condition: FilterCondition) -> pd.Ser
     op = condition.operator
     val = condition.value
     
+    # For comparison operators, attempt numeric conversion if value is numeric
+    if op in ("gt", "gte", "lt", "lte", "between"):
+        try:
+            col_values = pd.to_numeric(df[col], errors='coerce')
+        except (ValueError, TypeError):
+            col_values = df[col]
+    else:
+        col_values = df[col]
+    
     if op == "eq":
         return df[col] == val
     elif op == "ne":
         return df[col] != val
     elif op == "gt":
-        return df[col] > val
+        return col_values > val
     elif op == "gte":
-        return df[col] >= val
+        return col_values >= val
     elif op == "lt":
-        return df[col] < val
+        return col_values < val
     elif op == "lte":
-        return df[col] <= val
+        return col_values <= val
     elif op == "in":
         return df[col].isin(val if isinstance(val, list) else [val])
     elif op == "not_in":
         return ~df[col].isin(val if isinstance(val, list) else [val])
     elif op == "between":
-        return (df[col] >= val) & (df[col] <= condition.value_end)
+        return (col_values >= val) & (col_values <= condition.value_end)
     elif op == "contains":
         return df[col].astype(str).str.contains(str(val), case=False, na=False)
     else:

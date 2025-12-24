@@ -44,8 +44,8 @@ def _detect_and_apply_header(
     """
     result = HeaderDetector.detect(df)
     
-    if result.confidence >= confidence_threshold and result.header_row > 0:
-        # Apply detected header
+    if result.confidence >= confidence_threshold:
+        # Apply detected header (even when header_row is 0, which is the common case)
         df = HeaderDetector.apply_header(df, result.header_row)
     
     return df, result.header_row, result.confidence

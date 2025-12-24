@@ -363,7 +363,6 @@ async def global_exception_handler(request, exc):
 | openai | AI-powered features |
 | RestrictedPython | Sandboxed code execution |
 | reportlab | PDF export |
-| python-pptx | PowerPoint export |
 
 ## Environment Variables
 

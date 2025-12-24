@@ -78,6 +78,21 @@ class TestApplyFilters:
         assert len(result) == 4
         assert all(result["region"] == "North")
 
+    def test_ne_filter(self, sample_dataframe):
+        """Not equal filter should work."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="region", operator="ne", value="North")]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(result["region"] != "North")
+
     def test_gt_filter(self, sample_dataframe):
         """Greater than filter should work."""
         spec = ChartSpec(
@@ -92,6 +107,51 @@ class TestApplyFilters:
         result = apply_filters(sample_dataframe, spec)
         
         assert all(result["revenue"] > 2000)
+
+    def test_gte_filter(self, sample_dataframe):
+        """Greater than or equal filter should work."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="revenue", operator="gte", value=2000)]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(result["revenue"] >= 2000)
+
+    def test_lt_filter(self, sample_dataframe):
+        """Less than filter should work."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="revenue", operator="lt", value=2000)]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(result["revenue"] < 2000)
+
+    def test_lte_filter(self, sample_dataframe):
+        """Less than or equal filter should work."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="revenue", operator="lte", value=2000)]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(result["revenue"] <= 2000)
 
     def test_in_filter(self, sample_dataframe):
         """In filter should work with list of values."""
@@ -108,6 +168,21 @@ class TestApplyFilters:
         
         assert all(result["category"].isin(["A", "B"]))
 
+    def test_not_in_filter(self, sample_dataframe):
+        """Not in filter should work with list of values."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="category", operator="not_in", value=["A", "B"])]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(~result["category"].isin(["A", "B"]))
+
     def test_between_filter(self, sample_dataframe):
         """Between filter should work with value_end."""
         spec = ChartSpec(
@@ -122,6 +197,21 @@ class TestApplyFilters:
         result = apply_filters(sample_dataframe, spec)
         
         assert all((result["revenue"] >= 1500) & (result["revenue"] <= 2100))
+
+    def test_contains_filter(self, sample_dataframe):
+        """Contains filter should work for string matching."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            filters=FiltersConfig(
+                conditions=[FilterCondition(column="region", operator="contains", value="orth")]
+            )
+        )
+        
+        result = apply_filters(sample_dataframe, spec)
+        
+        assert all(result["region"].str.contains("orth", case=False))
 
     def test_and_logic(self, sample_dataframe):
         """Multiple filters with AND logic."""
@@ -228,6 +318,54 @@ class TestApplyAggregation:
         # Each category has 2 rows
         assert all(result["revenue"] == 2)
 
+    def test_median_aggregation(self, sample_dataframe):
+        """Median aggregation should group and compute median."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue"]),
+            aggregation=AggregationConfig(method="median", group_by=["category"])
+        )
+        
+        result = apply_aggregation(sample_dataframe, spec)
+        
+        # A: median of [1000, 1100] = 1050
+        a_revenue = result[result["category"] == "A"]["revenue"].iloc[0]
+        assert a_revenue == 1050.0
+
+    def test_min_aggregation(self, sample_dataframe):
+        """Min aggregation should group and find minimum."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue"]),
+            aggregation=AggregationConfig(method="min", group_by=["category"])
+        )
+        
+        result = apply_aggregation(sample_dataframe, spec)
+        
+        # A: min of [1000, 1100] = 1000
+        a_revenue = result[result["category"] == "A"]["revenue"].iloc[0]
+        assert a_revenue == 1000.0
+
+    def test_max_aggregation(self, sample_dataframe):
+        """Max aggregation should group and find maximum."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue"]),
+            aggregation=AggregationConfig(method="max", group_by=["category"])
+        )
+        
+        result = apply_aggregation(sample_dataframe, spec)
+        
+        # A: max of [1000, 1100] = 1100
+        a_revenue = result[result["category"] == "A"]["revenue"].iloc[0]
+        assert a_revenue == 1100.0
+
 
 class TestBuildPlotlyFigure:
     """Tests for Plotly figure building."""
@@ -324,6 +462,20 @@ class TestBuildPlotlyFigure:
         
         assert fig is not None
 
+    def test_heatmap_chart(self, sample_dataframe):
+        """Heatmap should produce valid Plotly figure."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="heatmap",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue"]),
+            series=SeriesConfig(group_column="region")
+        )
+        
+        fig = build_plotly_figure(sample_dataframe, spec)
+        
+        assert fig is not None
+
     def test_chart_with_series_grouping(self, sample_dataframe):
         """Chart with series grouping should create multiple traces."""
         spec = ChartSpec(
@@ -352,6 +504,49 @@ class TestBuildPlotlyFigure:
         
         # Should have 2 traces
         assert len(fig.data) == 2
+
+    def test_stacked_bar_chart(self, sample_dataframe):
+        """Stacked bar chart should have barmode='stack'."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue", "quantity"]),
+            visual=VisualStructureConfig(stacking="stacked")
+        )
+        
+        fig = build_plotly_figure(sample_dataframe, spec)
+        
+        assert fig.layout.barmode == "stack"
+
+    def test_percent_stacked_bar_chart(self, sample_dataframe):
+        """Percent stacked bar chart should have barnorm='percent'."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue", "quantity"]),
+            visual=VisualStructureConfig(stacking="percent")
+        )
+        
+        fig = build_plotly_figure(sample_dataframe, spec)
+        
+        assert fig.layout.barmode == "stack"
+        assert fig.layout.barnorm == "percent"
+
+    def test_grouped_bar_chart(self, sample_dataframe):
+        """Grouped bar chart should have barmode='group'."""
+        spec = ChartSpec(
+            file_id="test-123",
+            chart_type="bar",
+            x_axis=AxisConfig(column="category"),
+            y_axis=YAxisConfig(columns=["revenue", "quantity"]),
+            visual=VisualStructureConfig(stacking="grouped")
+        )
+        
+        fig = build_plotly_figure(sample_dataframe, spec)
+        
+        assert fig.layout.barmode == "group"
 
 
 class TestApplyStyling:
