@@ -25,6 +25,26 @@ class ExportFormat(str, Enum):
     PPTX = "pptx"
 
 
+class ColumnType(str, Enum):
+    """Column data type classifications"""
+    TEXT = "text"
+    INTEGER = "integer"
+    FLOAT = "float"
+    DATE = "date"
+    DATETIME = "datetime"
+    BOOLEAN = "boolean"
+    EMPTY = "empty"
+
+
+class ColumnInfo(BaseModel):
+    """Information about a column including its detected type"""
+    name: str = Field(description="Column name")
+    type: ColumnType = Field(description="Detected data type")
+    sample_values: List[str] = Field(default_factory=list, description="Sample non-null values (up to 3)")
+    null_count: int = Field(default=0, description="Number of null/empty values")
+    unique_count: int = Field(default=0, description="Number of unique values")
+
+
 class FileUploadResponse(BaseModel):
     """Response for file upload"""
     file_id: str
@@ -219,6 +239,7 @@ class PreviewResponse(BaseModel):
     message: str
     sheet_name: Optional[str] = Field(default=None, description="Sheet being previewed (Excel only)")
     available_sheets: Optional[List[str]] = Field(default=None, description="Available sheets (Excel only)")
+    column_info: Optional[List[ColumnInfo]] = Field(default=None, description="Column type information")
 
 
 # ============================================================================

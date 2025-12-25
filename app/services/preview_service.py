@@ -7,7 +7,145 @@ import pandas as pd
 from fastapi import HTTPException
 
 from app.utils import get_file_content
-from app.models import PreviewResponse
+from app.models import PreviewResponse, ColumnInfo, ColumnType
+
+
+def detect_column_type(values: List[Any]) -> ColumnType:
+    """
+    Detect the type of a column based on its values.
+    
+    Args:
+        values: List of values from the column
+        
+    Returns:
+        ColumnType enum value
+    """
+    # Filter out None/empty values
+    non_null_values = [v for v in values if v is not None and v != "" and str(v).strip() != ""]
+    
+    if len(non_null_values) == 0:
+        return ColumnType.EMPTY
+    
+    # Check types of non-null values
+    type_counts = {
+        "datetime": 0,
+        "date": 0,
+        "bool": 0,
+        "int": 0,
+        "float": 0,
+        "text": 0
+    }
+    
+    for value in non_null_values:
+        if isinstance(value, datetime):
+            type_counts["datetime"] += 1
+        elif isinstance(value, date):
+            type_counts["date"] += 1
+        elif isinstance(value, bool):
+            type_counts["bool"] += 1
+        elif isinstance(value, int):
+            type_counts["int"] += 1
+        elif isinstance(value, float):
+            # Check if it's effectively an integer
+            if value == int(value):
+                type_counts["int"] += 1
+            else:
+                type_counts["float"] += 1
+        elif isinstance(value, str):
+            # Try to parse as number or date
+            val_str = value.strip()
+            
+            # Try integer
+            try:
+                int(val_str.replace(",", "").replace(" ", ""))
+                type_counts["int"] += 1
+                continue
+            except (ValueError, AttributeError):
+                pass
+            
+            # Try float
+            try:
+                float(val_str.replace(",", "").replace(" ", "").rstrip("%").lstrip("$€£"))
+                type_counts["float"] += 1
+                continue
+            except (ValueError, AttributeError):
+                pass
+            
+            # Try date/datetime parsing
+            try:
+                parsed = pd.to_datetime(val_str, errors='raise')
+                if parsed.hour == 0 and parsed.minute == 0 and parsed.second == 0:
+                    type_counts["date"] += 1
+                else:
+                    type_counts["datetime"] += 1
+                continue
+            except:
+                pass
+            
+            # Check for boolean-like strings
+            if val_str.lower() in ("true", "false", "yes", "no", "1", "0"):
+                type_counts["bool"] += 1
+                continue
+            
+            type_counts["text"] += 1
+        else:
+            type_counts["text"] += 1
+    
+    # Determine dominant type (majority wins)
+    total = len(non_null_values)
+    threshold = 0.5  # At least 50% should be of this type
+    
+    # Priority order: datetime > date > float > int > bool > text
+    if type_counts["datetime"] / total >= threshold:
+        return ColumnType.DATETIME
+    if type_counts["date"] / total >= threshold:
+        return ColumnType.DATE
+    if (type_counts["float"] + type_counts["int"]) / total >= threshold:
+        if type_counts["float"] > 0:
+            return ColumnType.FLOAT
+        return ColumnType.INTEGER
+    if type_counts["bool"] / total >= threshold:
+        return ColumnType.BOOLEAN
+    
+    return ColumnType.TEXT
+
+
+def get_column_info(header: str, values: List[Any]) -> ColumnInfo:
+    """
+    Get detailed information about a column.
+    
+    Args:
+        header: Column name
+        values: List of values from the column
+        
+    Returns:
+        ColumnInfo with type and statistics
+    """
+    col_type = detect_column_type(values)
+    
+    # Get non-null values for samples
+    non_null_values = [v for v in values if v is not None and v != "" and str(v).strip() != ""]
+    
+    # Get sample values (up to 3 unique)
+    seen = set()
+    samples = []
+    for v in non_null_values:
+        str_val = str(v)
+        if str_val not in seen and len(samples) < 3:
+            seen.add(str_val)
+            samples.append(str_val)
+    
+    # Count nulls and uniques
+    null_count = sum(1 for v in values if v is None or v == "" or str(v).strip() == "")
+    unique_count = len(set(str(v) for v in non_null_values))
+    
+    return ColumnInfo(
+        name=header,
+        type=col_type,
+        sample_values=samples,
+        null_count=null_count,
+        unique_count=unique_count
+    )
 
 
 def format_excel_cell_value(cell: Cell) -> str:
@@ -152,8 +290,7 @@ def get_excel_preview_data(
     """
     workbook = load_workbook(io.BytesIO(file_content), data_only=False)
     available_sheets = workbook.sheetnames
-    
-    # Select the appropriate sheet
+      # Select the appropriate sheet
     if sheet_name is not None:
         if sheet_name not in available_sheets:
             workbook.close()
@@ -168,6 +305,7 @@ def get_excel_preview_data(
     
     headers: List[str] = []
     data: List[Dict[str, str]] = []
+    raw_column_values: Dict[str, List[Any]] = {}  # For type detection
     
     # Get the actual data range
     max_col = worksheet.max_column
@@ -181,13 +319,19 @@ def get_excel_preview_data(
             headers.append(str(header_value))
         else:
             headers.append(f"Column_{col}")
-      # Extract data rows with formatting
+        raw_column_values[headers[-1]] = []
+    
+    # Extract data rows with formatting
     for row_idx in range(2, max_row + 1):
         row_data: Dict[str, str] = {}
         for col_idx, header in enumerate(headers, start=1):
             cell = worksheet.cell(row=row_idx, column=col_idx)
             row_data[header] = format_excel_cell_value(cell)
+            raw_column_values[header].append(cell.value)
         data.append(row_data)
+    
+    # Build column info
+    column_info = [get_column_info(header, raw_column_values[header]) for header in headers]
     
     workbook.close()
     
@@ -197,7 +341,8 @@ def get_excel_preview_data(
         "total_rows": worksheet.max_row - 1,  # Exclude header
         "formatted": True,
         "sheet_name": active_sheet_name,
-        "available_sheets": available_sheets
+        "available_sheets": available_sheets,
+        "column_info": column_info
     }
 
 
@@ -217,17 +362,18 @@ def get_csv_preview_data(
     """    
     df = pd.read_csv(io.BytesIO(file_content), nrows=max_rows)
     
-    # Get total row count by reading just the length
-    total_df = pd.read_csv(io.BytesIO(file_content))
+    # Get total row count by reading just the length    total_df = pd.read_csv(io.BytesIO(file_content))
     total_rows = len(total_df)
     
     headers = df.columns.tolist()
     data = []
+    raw_column_values: Dict[str, List[Any]] = {h: [] for h in headers}
     
     for _, row in df.iterrows():
         row_data: Dict[str, str] = {}
         for header in headers:
             value = row[header]
+            raw_column_values[header].append(value if not pd.isna(value) else None)
             if pd.isna(value):
                 row_data[header] = ""
             elif isinstance(value, float):
@@ -240,13 +386,17 @@ def get_csv_preview_data(
                 row_data[header] = str(value)
         data.append(row_data)
     
+    # Build column info
+    column_info = [get_column_info(header, raw_column_values[header]) for header in headers]
+    
     return {
         "headers": headers,
         "data": data,
         "total_rows": total_rows,
         "formatted": False,
         "sheet_name": None,
-        "available_sheets": None
+        "available_sheets": None,
+        "column_info": column_info
     }
 
 
@@ -315,8 +465,7 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
         # Default to first sheet if not specified
         if sheet_name is None and available_sheets:
             sheet_name = available_sheets[0]
-    
-    # Try to get the cleaned/stored dataframe for this specific sheet
+      # Try to get the cleaned/stored dataframe for this specific sheet
     if has_dataframe(file_id, sheet_name):
         try:
             df = get_dataframe(file_id, sheet_name)
@@ -325,11 +474,13 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
             
             headers = df.columns.tolist()
             data = []
+            raw_column_values: Dict[str, List[Any]] = {h: [] for h in headers}
             
             for _, row in preview_df.iterrows():
                 row_data: Dict[str, str] = {}
                 for header in headers:
                     value = row[header]
+                    raw_column_values[header].append(value if not pd.isna(value) else None)
                     if pd.isna(value):
                         row_data[header] = ""
                     elif isinstance(value, float):
@@ -341,6 +492,9 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
                         row_data[header] = str(value)
                 data.append(row_data)
             
+            # Build column info
+            column_info = [get_column_info(header, raw_column_values[header]) for header in headers]
+            
             return PreviewResponse(
                 file_id=file_id,
                 headers=headers,
@@ -350,12 +504,12 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
                 formatted=False,
                 message="Preview from stored data",
                 sheet_name=sheet_name,
-                available_sheets=available_sheets
+                available_sheets=available_sheets,
+                column_info=column_info
             )
         except ValueError:
             pass
-    
-    # Fall back to reading from original file content
+      # Fall back to reading from original file content
     try:
         preview_data = get_preview_data(content, filename, max_rows, sheet_name)
         
@@ -368,7 +522,8 @@ async def get_formatted_preview(file_id: str, max_rows: int = 100, sheet_name: O
             formatted=preview_data["formatted"],
             message="Preview from original file",
             sheet_name=preview_data.get("sheet_name"),
-            available_sheets=preview_data.get("available_sheets")
+            available_sheets=preview_data.get("available_sheets"),
+            column_info=preview_data.get("column_info")
         )
     except ValueError as e:
         raise HTTPException(
